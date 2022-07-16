@@ -277,7 +277,7 @@ class Board():
         used = []
         for x in range(4):
             s = rd.randint(0,len(poss)-1)
-            while(s not in used):
+            while(s in used):
                 s = rd.randint(0,len(poss)-1)
             self.States[poss[s]].person.isZombie = True
             used.append(s)
