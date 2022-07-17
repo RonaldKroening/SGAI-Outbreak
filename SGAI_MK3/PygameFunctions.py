@@ -24,16 +24,23 @@ pygame.display.set_caption("Outbreak!")
 screen.fill("#DDC2A1")
 
 
-def get_action(B, x, y):
-    heal_check = x >= 900 and x <= 1100 and y > 199 and y < 301
-    a = int((x - 150) / 100)
-    b = int((y - 150) / 100)
-    move_check = a >= 0 and a < B.columns and b >= 0 and b < B.rows
-    c = (int((x - 150) / 100), int((y - 150) / 100))
+def get_action(B, pixel_x, pixel_y):
+    """
+    Get the action that the click represents.
+    If the click was on the heal button, returns "heal"
+    Else, returns the board coordinates of the click (board_x, board_y)
+    """
+    heal_check = pixel_x >= 900 and pixel_x <= 1100 and pixel_y > 199 and pixel_y < 301
+    board_x = int((pixel_x - 150) / 100)
+    board_y = int((pixel_y - 150) / 100)
+    move_check = (
+        board_x >= 0 and board_x < B.columns and board_y >= 0 and board_y < B.rows
+    )
+    board_coords = (int((pixel_x - 150) / 100), int((pixel_y - 150) / 100))
     if heal_check:
         return "heal"
     else:
-        return c
+        return board_coords
 
 
 def display_people(StateList, board_dimensions):
@@ -53,6 +60,7 @@ def display_people(StateList, board_dimensions):
 
 
 def run(GameBoard, bd):
+    screen.fill(BACKGROUND)
     build_grid(screen, 5, 100, 150)
     display_image(screen, "Assets/cure.jpeg", cell_dimensions, (950, 200))
     # pygame.display.flip()

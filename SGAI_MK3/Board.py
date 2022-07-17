@@ -1,6 +1,8 @@
+from tracemalloc import start
 from State import State
 import random as rd
 from Person import Person
+from typing import Tuple
 
 
 class Board:
@@ -49,28 +51,43 @@ class Board:
         return [reward, f[1]]
 
     def get_possible_moves(self, action, role):
+        """
+        Get the coordinates of people (or zombies) that are able
+        to make the specified move.
+        @param action - the action to return possibilities for (options are 'bite', 'moveUp', 'moveDown','moveLeft', 'moveRight', and 'heal')
+        @param role - either 'Zombie' or 'Government'; helps decide whether an action
+        is valid and which people/zombies it applies to
+        """
         poss = []
         B = self.clone(self.States, self.Player_Role)
+
         if role == "Zombie":
-            for state in self.States:
-                if state.person != None:
+            for idx in range(len(self.States)):
+                B.States = [self.States[i].clone() for i in range(len(self.States))]
+                state = self.States[idx]
+                if state.person is not None:
                     if action == "bite":
-                        if state.person.isZombie == False:
+                        # if the current space isn't a zombie and it is adjacent
+                        # a space that is a zombie
+                        if not state.person.isZombie and self.isAdjacentTo(
+                            self.toCoord(idx), True
+                        ):
                             poss.append(B.toCoord(state.location))
                     else:
                         if state.person.isZombie:
                             if action == "moveUp":
-                                if B.moveUp(B.toCoord(state.location)):
+                                if B.moveUp(B.toCoord(state.location))[0]:
                                     poss.append(B.toCoord(state.location))
                             elif action == "moveDown":
-                                if B.moveDown(B.toCoord(state.location)):
+                                if B.moveDown(B.toCoord(state.location))[0]:
                                     poss.append(B.toCoord(state.location))
                             elif action == "moveLeft":
-                                if B.moveLeft(B.toCoord(state.location)):
+                                if B.moveLeft(B.toCoord(state.location))[0]:
                                     poss.append(B.toCoord(state.location))
                             elif action == "moveRight":
-                                if B.moveRight(B.toCoord(state.location)):
+                                if B.moveRight(B.toCoord(state.location))[0]:
                                     poss.append(B.toCoord(state.location))
+
         elif role == "Government":
             for state in self.States:
                 if state.person != None:
@@ -100,64 +117,82 @@ class Board:
         return (int(i % self.columns), int(i / self.rows))
 
     def toIndex(self, coordinates):
-        return int(coordinates[1] * self.rows) + int(coordinates[0])
+        return int(coordinates[1] * self.columns) + int(coordinates[0])
 
-    def clone(self, L, role):
+    def isValidCoordinate(self, coordinates):
+        return (
+            coordinates[1] < self.rows
+            and coordinates[1] >= 0
+            and coordinates[0] < self.columns
+            and coordinates[0] >= 0
+        )
+
+    def clone(self, L: list, role):
         NB = Board((self.rows, self.columns), role)
-        NB.States = L
+        NB.States = L.copy()
         NB.Player_Role = role
         return NB
 
-    def moveUp(self, coords):
-        i = self.toIndex(coords)
-        n = (coords[0], coords[1] - 1)
-        print("new coords ", n)
-        j = int(n[0] % self.columns) + int(n[1] * self.rows)
-        try:
-            self.States[j].person = self.States[i].person
-            self.States[i].person = None
-            return [True, j]
-        except:
-            return [False, j]
+    def isAdjacentTo(self, coord, is_zombie: bool) -> bool:
+        ret = False
+        vals = [
+            (coord[0], coord[1] + 1),
+            (coord[0], coord[1] - 1),
+            (coord[0] + 1, coord[1]),
+            (coord[0] - 1, coord[1]),
+        ]
+        for coord in vals:
+            if (
+                self.isValidCoordinate(coord)
+                and self.States[self.toIndex(coord)].person is not None
+                and self.States[self.toIndex(coord)].person.isZombie == is_zombie
+            ):
+                ret = True
+                break
 
-    def moveDown(self, coords):
-        i = self.toIndex(coords)
-        n = (coords[0], coords[1] + 1)
-        print("new coords ", n)
-        j = int(n[0] % self.columns) + int(n[1] * self.rows)
-        try:
-            self.States[j].person = self.States[i].person
-            self.States[i].person = None
-            return [True, j]
-        except:
-            return [False, j]
+        return ret
 
-    def moveLeft(self, coords):
-        i = self.toIndex(coords)
-        n = (coords[0] - 1, coords[1])
-        print("new coords ", n)
-        j = int(n[0] % self.columns) + int(n[1] * self.rows)
-        try:
-            self.States[j].person = self.States[i].person
-            self.States[i].person = None
-            return [True, j]
-        except:
-            return [False, j]
+    def move(self, from_coords, new_coords) -> Tuple[bool, int]:
+        start_idx = self.toIndex(from_coords)
 
-    def moveRight(self, coords):
-        print("moving right")
-        i = self.toIndex(coords)
-        n = (coords[0] + 1, coords[1])
-        print("new coords ", n)
-        j = int(n[0] % self.columns) + int(n[1] * self.rows)
-        print("moving to ", n, " index ", j)
-        print("person at new index: ", self.States[j].person)
+        # idk why this line is here, but I kept it from the original code just in case
+        destination_idx = int(new_coords[0] % self.columns) + int(
+            new_coords[1] * self.rows
+        )
+
+        if not self.isValidCoordinate(new_coords):
+            return [False, destination_idx]
+
+        destination_idx = self.toIndex(new_coords)
         try:
-            self.States[j].person = self.States[i].person
-            self.States[i].person = None
-            return [True, j]
+            # only allow a move if the space isn't already occupied
+            if self.States[destination_idx].person is None:
+                self.States[destination_idx].person = self.States[start_idx].person
+                self.States[start_idx].person = None
+                return [True, destination_idx]
+            return [False, destination_idx]
         except:
-            return [False, j]
+            return [False, destination_idx]
+
+    def moveUp(self, coords) -> Tuple[bool, int]:
+        new_coords = (coords[0], coords[1] - 1)
+        print(f"going from {coords} to new coords {new_coords}")
+        return self.move(coords, new_coords)
+
+    def moveDown(self, coords) -> Tuple[bool, int]:
+        new_coords = (coords[0], coords[1] + 1)
+        print(f"going from {coords} to new coords {new_coords}")
+        return self.move(coords, new_coords)
+
+    def moveLeft(self, coords) -> Tuple[bool, int]:
+        new_coords = (coords[0] - 1, coords[1])
+        print(f"going from {coords} to new coords {new_coords}")
+        return self.move(coords, new_coords)
+
+    def moveRight(self, coords) -> Tuple[bool, int]:
+        new_coords = (coords[0] + 1, coords[1])
+        print(f"going from {coords} to new coords {new_coords}")
+        return self.move(coords, new_coords)
 
     def QGreedyat(self, state_id):
         biggest = self.QTable[state_id][0] * self.Player_Role

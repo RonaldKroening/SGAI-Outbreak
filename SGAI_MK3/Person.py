@@ -15,3 +15,9 @@ class Person:
         ret.isVaccinated = self.isVaccinated
         ret.wasCured = self.wasCured
         return ret
+
+    def __str__(self) -> str:
+        return f"Person who is a zombie? {self.isZombie}"
+
+    def __repr__(self) -> str:
+        return str(self)
