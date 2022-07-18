@@ -50,6 +50,12 @@ class Board:
             reward = reward * 0
         return [reward, f[1]]
 
+    def containsPerson(self, isZombie):
+        for state in self.States:
+            if state.person is not None and state.person.isZombie == isZombie:
+                return True
+        return False
+
     def get_possible_moves(self, action, role):
         """
         Get the coordinates of people (or zombies) that are able
@@ -62,6 +68,8 @@ class Board:
         B = self.clone(self.States, self.Player_Role)
 
         if role == "Zombie":
+            if not self.containsPerson(True):
+                return poss
             for idx in range(len(self.States)):
                 B.States = [self.States[i].clone() for i in range(len(self.States))]
                 state = self.States[idx]
@@ -89,6 +97,8 @@ class Board:
                                     poss.append(B.toCoord(state.location))
 
         elif role == "Government":
+            if not self.containsPerson(False):
+                return poss
             for state in self.States:
                 if state.person != None:
                     if action == "heal":
