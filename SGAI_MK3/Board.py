@@ -271,7 +271,7 @@ class Board:
 
     def heal(self, coords):
         i = self.toIndex(coords)
-        if self.States[i] is None:
+        if self.States[i].person is None:
             return False
         p = self.States[i].person
         newP = p.clone()
