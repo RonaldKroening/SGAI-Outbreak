@@ -14,7 +14,7 @@ CELL_COLOR = (233, 222, 188)
 screen = pygame.display.set_mode((1200, 800))
 pygame.display.set_caption("Outbreak!")
 pygame.font.init()
-my_font = pygame.font.SysFont("Impact", 30)
+font = pygame.font.SysFont("Impact", 30)
 cell_dimensions = (100, 100)
 game_window_dimensions = (1400, 800)
 person_dimensions = (20, 60)
@@ -22,6 +22,9 @@ grid_start = (150, 150)
 pygame.display.set_caption("Outbreak!")
 # screen = pygame.display.set_mode(game_window_dimensions)
 screen.fill("#DDC2A1")
+
+RESET_MOVE_COORDS = (800, 600)
+RESET_MOVE_DIMS = (200, 50)
 
 
 def get_action(B, pixel_x, pixel_y):
@@ -31,16 +34,26 @@ def get_action(B, pixel_x, pixel_y):
     Else, returns the board coordinates of the click (board_x, board_y)
     """
     heal_check = pixel_x >= 900 and pixel_x <= 1100 and pixel_y > 199 and pixel_y < 301
+    reset_move_check = (
+        pixel_x >= RESET_MOVE_COORDS[0]
+        and pixel_x <= RESET_MOVE_COORDS[0] + RESET_MOVE_DIMS[0]
+        and pixel_y >= RESET_MOVE_COORDS[1]
+        and pixel_y <= RESET_MOVE_COORDS[1] + RESET_MOVE_DIMS[1]
+    )
     board_x = int((pixel_x - 150) / 100)
     board_y = int((pixel_y - 150) / 100)
     move_check = (
         board_x >= 0 and board_x < B.columns and board_y >= 0 and board_y < B.rows
     )
     board_coords = (int((pixel_x - 150) / 100), int((pixel_y - 150) / 100))
+
     if heal_check:
         return "heal"
-    else:
+    elif reset_move_check:
+        return "reset move"
+    elif move_check:
         return board_coords
+    return None
 
 
 def display_people(StateList, board_dimensions):
@@ -65,7 +78,19 @@ def run(GameBoard, bd):
     display_image(screen, "Assets/cure.jpeg", cell_dimensions, (950, 200))
     # pygame.display.flip()
     display_people(GameBoard.States, bd)
+    display_reset_move_button()
     return pygame.event.get()
+
+
+def display_reset_move_button():
+    rect = pygame.Rect(
+        RESET_MOVE_COORDS[0],
+        RESET_MOVE_COORDS[1],
+        RESET_MOVE_DIMS[0],
+        RESET_MOVE_DIMS[1],
+    )
+    pygame.draw.rect(screen, BLACK, rect)
+    screen.blit(font.render("Reset move?", True, WHITE), RESET_MOVE_COORDS)
 
 
 def display_board(screen, Board):
@@ -130,7 +155,7 @@ def build_grid(screen, margin, cell_side, start):
 def display_win_screen():
     screen.fill(BACKGROUND)
     screen.blit(
-        pygame.font.SysFont("Comic Sans", 32).render("You win!", True, WHITE),
+        font.render("You win!", True, WHITE),
         (500, 400),
     )
     pygame.display.update()
@@ -145,7 +170,7 @@ def display_win_screen():
 def display_lose_screen():
     screen.fill(BACKGROUND)
     screen.blit(
-        pygame.font.SysFont("Comic Sans", 32).render("You lose lol!", True, WHITE),
+        font.render("You lose lol!", True, WHITE),
         (500, 500),
     )
     pygame.display.update()
