@@ -1,52 +1,74 @@
 import pygame
 
-image_assets = ["person_normal.png","person_vax.png","person_zombie.png"]
-grid_start = (150,150)
-cell_dimensions = (100,100)
+image_assets = [
+    "person_normal.png",
+    "person_vax.png",
+    "person_zombie.png",
+]
+grid_start = (150, 150)
+cell_dimensions = (100, 100)
 BACKGROUND = "#DDC2A1"
-BLACK = (0,0,0)
-WHITE = (255,255,255)
-CELL_COLOR = (233,222,188)
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+CELL_COLOR = (233, 222, 188)
 screen = pygame.display.set_mode((1200, 800))
-pygame.display.set_caption('Outbreak!')
+pygame.display.set_caption("Outbreak!")
 pygame.font.init()
-my_font = pygame.font.SysFont('Impact', 30)
-cell_dimensions = (100,100)
+my_font = pygame.font.SysFont("Impact", 30)
+cell_dimensions = (100, 100)
 game_window_dimensions = (1400, 800)
-person_dimensions = (20,60)
-grid_start = (150,150)
-pygame.display.set_caption('Outbreak!')
+person_dimensions = (20, 60)
+grid_start = (150, 150)
+pygame.display.set_caption("Outbreak!")
 # screen = pygame.display.set_mode(game_window_dimensions)
 screen.fill("#DDC2A1")
-def get_action(B,x,y):
-    heal_check = x >= 900 and x <= 1100 and y > 199 and y < 301
-    a = int((x-150)/100)
-    b = int((y-150)/100)
-    move_check = a >= 0 and a < B.columns and b >= 0 and b < B.rows
-    c = (int((x-150)/100),int((y-150)/100))
-    if(heal_check):
+
+
+def get_action(B, pixel_x, pixel_y):
+    """
+    Get the action that the click represents.
+    If the click was on the heal button, returns "heal"
+    Else, returns the board coordinates of the click (board_x, board_y)
+    """
+    heal_check = pixel_x >= 900 and pixel_x <= 1100 and pixel_y > 199 and pixel_y < 301
+    board_x = int((pixel_x - 150) / 100)
+    board_y = int((pixel_y - 150) / 100)
+    move_check = (
+        board_x >= 0 and board_x < B.columns and board_y >= 0 and board_y < B.rows
+    )
+    board_coords = (int((pixel_x - 150) / 100), int((pixel_y - 150) / 100))
+    if heal_check:
         return "heal"
     else:
-        return c
+        return board_coords
+
+
 def display_people(StateList, board_dimensions):
     for x in range(len(StateList)):
-        if(StateList[x].person != None):
+        if StateList[x].person != None:
             p = StateList[x].person
-            char = "Assets/"+image_assets[0]
-            if(p.isVaccinated): 
-                char = "Assets/"+image_assets[1]
-            elif(p.isZombie):
-                char = "Assets/"+image_assets[2]
-            coords = (int(x % board_dimensions[0])*100+185, int(x/board_dimensions[1])*100+170)
-            display_image(screen,char, (35,60), coords)
+            char = "Assets/" + image_assets[0]
+            if p.isVaccinated:
+                char = "Assets/" + image_assets[1]
+            elif p.isZombie:
+                char = "Assets/" + image_assets[2]
+            coords = (
+                int(x % board_dimensions[0]) * 100 + 185,
+                int(x / board_dimensions[1]) * 100 + 170,
+            )
+            display_image(screen, char, (35, 60), coords)
+
+
 def run(GameBoard, bd):
-    build_grid(screen, 5, 100,150)
-    display_image(screen, "Assets/cure.jpeg",cell_dimensions,(950,200))
+    screen.fill(BACKGROUND)
+    build_grid(screen, 5, 100, 150)
+    display_image(screen, "Assets/cure.jpeg", cell_dimensions, (950, 200))
     # pygame.display.flip()
     display_people(GameBoard.States, bd)
     display_board(screen,GameBoard)
     
     return pygame.event.get()
+
 
 def display_board(screen, Board):
     screen.fill(BACKGROUND)
@@ -55,47 +77,93 @@ def display_board(screen, Board):
     margin = 5
     i = 0
     for State in Board.States:
-        icon = ""
         person = State.person
-        if(person != None):
-            if(person.isZombie):
-                icon = image_assets[2]
-            elif(person.isVaccinated):
-                icon = image_assets[1]
+        if person is not None:
+            icon = "Assets/" + image_assets[0]
+            if person.isZombie:
+                icon = "Assets/" + image_assets[2]
+            elif person.isVaccinated:
+                icon = "Assets/" + image_assets[1]
             position = Board.toCoord(i)
-            x_start = (position[0] * cell_dimensions[0])+grid_start[0]+(cell_dimensions[0]/3)
-            y_pos = (position[1] * cell_dimensions[1])+grid_start[1]+(cell_dimensions[1]/4)
-            display_image(screen, icon, (35,60),(x_start,y_pos))
+            x_start = (
+                (position[0] * cell_dimensions[0])
+                + grid_start[0]
+                + (cell_dimensions[0] / 3)
+            )
+            y_pos = (
+                (position[1] * cell_dimensions[1])
+                + grid_start[1]
+                + (cell_dimensions[1] / 4)
+            )
+            display_image(screen, icon, (35, 60), (x_start, y_pos))
         i += 1
-    build_grid(screen,5,cell_dimensions[0],150)
+    build_grid(screen, 5, cell_dimensions[0], 150)
     pygame.display.update()
+
+
 def display_image(screen, itemStr, dimensions, position):
     v = pygame.image.load(itemStr).convert_alpha()
     v = pygame.transform.scale(v, dimensions)
-    screen.blit(v,position)
+    screen.blit(v, position)
+
+
 def build_grid(screen, margin, cell_side, start):
     grid_width = 600
     grid_height = 600
-    pygame.draw.rect(screen,BLACK, [start-5,start-5,5,grid_height+10])#left
-    pygame.draw.rect(screen,BLACK, [start+grid_width,start-5,5,grid_height+10])#right
-    pygame.draw.rect(screen,BLACK, [start-5,start+grid_height,grid_width+10,5])#bottom
-    pygame.draw.rect(screen,BLACK, [start-5,start-5,grid_width + 10,5]) #top
-    pygame.draw.rect(screen,CELL_COLOR, [start,start,grid_width,grid_height])
-    i = start+cell_side
-    while(i < start + grid_width):
-        pygame.draw.rect(screen,BLACK, [i,start,5,grid_height])
+    pygame.draw.rect(screen, BLACK, [start - 5, start - 5, 5, grid_height + 10])  # left
+    pygame.draw.rect(
+        screen, BLACK, [start + grid_width, start - 5, 5, grid_height + 10]
+    )  # right
+    pygame.draw.rect(
+        screen, BLACK, [start - 5, start + grid_height, grid_width + 10, 5]
+    )  # bottom
+    pygame.draw.rect(screen, BLACK, [start - 5, start - 5, grid_width + 10, 5])  # top
+    pygame.draw.rect(screen, CELL_COLOR, [start, start, grid_width, grid_height])
+    i = start + cell_side
+    while i < start + grid_width:
+        pygame.draw.rect(screen, BLACK, [i, start, 5, grid_height])
         i += cell_side
-    i = start+cell_side
-    while(i < start + grid_height):
-        pygame.draw.rect(screen,BLACK, [start,i,grid_width,5])
+    i = start + cell_side
+    while i < start + grid_height:
+        pygame.draw.rect(screen, BLACK, [start, i, grid_width, 5])
         i += cell_side
 
+
+def display_win_screen():
+    screen.fill(BACKGROUND)
+    screen.blit(
+        pygame.font.SysFont("Comic Sans", 32).render("You win!", True, WHITE),
+        (500, 400),
+    )
+    pygame.display.update()
+
+    # catch quit event
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return
+
+
+def display_lose_screen():
+    screen.fill(BACKGROUND)
+    screen.blit(
+        pygame.font.SysFont("Comic Sans", 32).render("You lose lol!", True, WHITE),
+        (500, 500),
+    )
+    pygame.display.update()
+
+    # catch quit event
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            return
+
+
 def direction(coord1, coord2):
-    if(coord2[1] > coord1[1]):
+    if coord2[1] > coord1[1]:
         return "moveDown"
-    elif(coord2[1] < coord1[1]):
+    elif coord2[1] < coord1[1]:
         return "moveUp"
-    elif(coord2[0] > coord1[0]):
+    elif coord2[0] > coord1[0]:
         return "moveRight"
-    elif(coord2[0] < coord1[0]):
+    elif coord2[0] < coord1[0]:
         return "moveLeft"
