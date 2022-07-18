@@ -101,6 +101,8 @@ class Board():
         NB = Board( (self.rows,self.columns), role )
         NB.States = L
         NB.Player_Role = role
+        return NB
+
     def moveUp(self, coords):
         i = self.toIndex(coords)
         n = (coords[0],coords[1]-1)
