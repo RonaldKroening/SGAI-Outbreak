@@ -127,6 +127,35 @@ def build_grid(screen, margin, cell_side, start):
         i += cell_side
 
 
+def display_win_screen():
+    screen.fill(BACKGROUND)
+    screen.blit(
+        pygame.font.SysFont("Comic Sans", 32).render("You win!", True, WHITE),
+        (500, 400),
+    )
+    pygame.display.update()
+
+    # catch quit event
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return
+
+
+def display_lose_screen():
+    screen.fill(BACKGROUND)
+    screen.blit(
+        pygame.font.SysFont("Comic Sans", 32).render("You lose lol!", True, WHITE),
+        (500, 500),
+    )
+    pygame.display.update()
+
+    # catch quit event
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            return
+
+
 def direction(coord1, coord2):
     if coord2[1] > coord1[1]:
         return "moveDown"

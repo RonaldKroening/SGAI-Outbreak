@@ -110,26 +110,35 @@ while running:
             take_action = []
             print("Enemy turn")
 
+            possible_actions = [
+                action_space[i]
+                for i in range(6)
+                if (i != 4 and role == "Government") or (i != 5 and role == "Zombie")
+            ]
             possible_move_coords = []
-            while len(possible_move_coords) == 0:
+            while len(possible_move_coords) == 0 and len(possible_actions) != 0:
                 action = ""
                 if role == "Government":  # role is player role
                     # Random Zombie Move
-                    r = rd.randint(0, 5)
-                    while r == 4:  # do not allow it to try to heal
-                        r = rd.randint(0, 5)
-                    action = action_space[r]
+                    action = rd.choice(possible_actions)
                     print("potential action is", action)
                     possible_move_coords = GameBoard.get_possible_moves(
                         action, "Zombie"
                     )
                 else:
                     # random government move (moves, heal)
-                    r = rd.randint(0, 4)
-                    action = action_space[r]
+                    action = rd.choice(possible_actions)
                     possible_move_coords = GameBoard.get_possible_moves(
                         action, "Government"
                     )
+                possible_actions.remove(action)
+                print("possible actions is", possible_actions)
+
+            # no valid moves, player wins
+            if len(possible_actions) == 0 and len(possible_move_coords) == 0:
+                PF.display_win_screen()
+                running = False
+                continue
 
             move_coord = rd.choice(possible_move_coords)
 
