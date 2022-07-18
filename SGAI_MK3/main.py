@@ -97,10 +97,11 @@ while running:
                     print(f"did it succeed? {g[0]}")
                     playerMoved = True
                     take_action = []
-                elif take_action[0] == "heal":
-                    print("Heal person at ", take_action[1])
-                    playerMoved = True
-                    take_action = []
+            elif take_action[0] == "heal":
+                print("Heal person at ", take_action[1])
+                GameBoard.heal(take_action[1])
+                playerMoved = True
+                take_action = []
 
         # computer turn
         if playerMoved:
