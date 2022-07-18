@@ -118,23 +118,16 @@ while running:
                 for i in range(6)
                 if (i != 4 and role == "Government") or (i != 5 and role == "Zombie")
             ]
+            computer_role = "Government"
+            if role == "Government":
+                computer_role = "Zombie"
+
             possible_move_coords = []
             while len(possible_move_coords) == 0 and len(possible_actions) != 0:
-                action = ""
-                if role == "Government":  # role is player role
-                    # Random Zombie Move
-                    action = rd.choice(possible_actions)
-                    print("potential action is", action)
-                    possible_move_coords = GameBoard.get_possible_moves(
-                        action, "Zombie"
-                    )
-                else:
-                    # random government move (moves, heal)
-                    action = rd.choice(possible_actions)
-                    possible_move_coords = GameBoard.get_possible_moves(
-                        action, "Government"
-                    )
-                possible_actions.remove(action)
+                action = possible_actions.pop(rd.randint(0, len(possible_actions) - 1))
+                possible_move_coords = GameBoard.get_possible_moves(
+                    action, computer_role
+                )
                 print("possible actions is", possible_actions)
 
             # no valid moves, player wins
