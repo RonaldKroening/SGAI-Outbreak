@@ -10,13 +10,16 @@ class Board:
     QTable = []
     rows = 0
     columns = 0
+    display_border = 0
+    display_cell_dimensions = ()
     population = 0
     Player_Role = 0
-    action_space = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
 
-    def __init__(self, dimensions, pr):
+    def __init__(self, dimensions, border, cell_dimensions, pr):
         self.rows = dimensions[0]
         self.columns = dimensions[1]
+        self.display_border = border
+        self.display_cell_dimensions = cell_dimensions
         self.Player_Role = pr
         for s in range(dimensions[0] * dimensions[1]):
             self.States.append(State(None, s))
@@ -128,7 +131,7 @@ class Board:
         )
 
     def clone(self, L: list, role):
-        NB = Board((self.rows, self.columns), role)
+        NB = Board((self.rows, self.columns), self.display_border, self.display_cell_dimensions, role)
         NB.States = L.copy()
         NB.Player_Role = role
         return NB

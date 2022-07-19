@@ -6,13 +6,17 @@ import random as rd
 # Constants
 ROWS = 6
 COLUMNS = 6
+BORDER = 150                    # Number of pixels to offset grid to the top-left side
+CELL_DIMENSIONS = (100,100)     # Number of pixels (x,y) for each cell
+
 
 role = "Government"  # valid options are "Government" and "Zombie"
 rn = 1
 if role == "Zombie":
     rn = -1
 roleToIsZombieMappings = {"Government": False, "Zombie": True}
-GameBoard = Board((ROWS,COLUMNS), rn)
+
+GameBoard = Board((ROWS,COLUMNS), BORDER, CELL_DIMENSIONS, rn)
 GameBoard.populate()
 print("Board Population: ", GameBoard.population)
 action_space = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
@@ -38,36 +42,26 @@ while running:
     P = PF.run(GameBoard)
 
     if self_play:
-        # get events
+        
+        # Event Handling
         for event in P:
             if event.type == pygame.MOUSEBUTTONUP:
                 x, y = pygame.mouse.get_pos()
                 action = PF.get_action(GameBoard, x, y)
-                if action == "heal":
-                    if "heal" not in take_action:
+                if action == "heal":                                        # Process a "heal" intention if take_action is currently empty
+                    if take_action == []:
                         take_action.append("heal")
-                else:
-                    idx = GameBoard.toIndex(action)
-                    # action is a coordinate
-                    if idx < (GameBoard.rows * GameBoard.columns) and idx > -1:
-                        if "move" not in take_action and len(take_action) == 0:
-                            # make sure that the space is not an empty space or a space of the opposite team
-                            # since cannot start a move from those invalid spaces
-                            if (
-                                GameBoard.States[idx].person is not None
-                                and GameBoard.States[idx].person.isZombie
-                                == roleToIsZombieMappings[role]
-                            ):
-                                take_action.append("move")
-                            else:
-                                continue
-
-                        # don't allow duplicate cells
-                        if action not in take_action:
-                            take_action.append(action)
+                elif action != None:                                        # Otherwise, get the coordinate of a valid grid cell that was clicked
+                    idx = GameBoard.toIndex(action)                         # Get the corresponding 1D index from the 2D grid location that was clicked
+                    if "move" not in take_action and take_action == []:     # Check that the click corresponds to an intention to move a player
+                        # Make sure that the space is not an empty space or a space of the opposite team
+                        if ( (GameBoard.States[idx].person is not None) and (GameBoard.States[idx].person.isZombie == roleToIsZombieMappings[role]) ):
+                            take_action.append("move")
+                    if take_action != []:                                   # Only append a coordinate if there is a pending "heal" or "move" intention
+                        take_action.append(action)
             if event.type == pygame.QUIT:
                 running = False
-
+        
         # display what take action currently is
         PF.screen.blit(
             font.render("Your move is currently:", True, PF.WHITE),
