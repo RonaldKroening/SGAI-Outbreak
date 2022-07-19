@@ -14,20 +14,17 @@ IMAGE_ASSETS = [
     "person_vax.png",
     "person_zombie.png",
 ]
+GAME_WINDOW_DIMENSIONS = (1200, 800)
+RESET_MOVE_COORDS = (800, 600)
+RESET_MOVE_DIMS = (200, 50)
 
 # Initialize pygame
-screen = pygame.display.set_mode((1200, 800))
+screen = pygame.display.set_mode(GAME_WINDOW_DIMENSIONS)
 pygame.display.set_caption("Outbreak!")
 pygame.font.init()
 font = pygame.font.SysFont("Impact", 30)
-cell_dimensions = (100, 100)
-game_window_dimensions = (1400, 800)
-person_dimensions = (20, 60)
 pygame.display.set_caption("Outbreak!")
 screen.fill(BACKGROUND)
-
-RESET_MOVE_COORDS = (800, 600)
-RESET_MOVE_DIMS = (200, 50)
 
 
 def get_action(GameBoard: Board, pixel_x: int, pixel_y: int):
@@ -70,9 +67,10 @@ def run(GameBoard: Board):
     """
     screen.fill(BACKGROUND)
     build_grid(GameBoard)  # Draw the grid
+    # Draw the heal icon
     display_image(
         screen, "Assets/cure.jpeg", GameBoard.display_cell_dimensions, (950, 200)
-    )  # Draw the heal icon
+    )
     display_people(GameBoard)
     display_reset_move_button()
     return pygame.event.get()
@@ -142,7 +140,6 @@ def build_grid(GameBoard: Board):
             LINE_WIDTH,
         ],
     )
-
     # top
     pygame.draw.rect(
         screen,
@@ -154,11 +151,12 @@ def build_grid(GameBoard: Board):
             LINE_WIDTH,
         ],
     )
+    # Fill the inside wioth the cell color
     pygame.draw.rect(
         screen,
         CELL_COLOR,
         [GameBoard.display_border, GameBoard.display_border, grid_width, grid_height],
-    )  # Fill the inside wioth the cell color
+    )
 
     # Draw the vertical lines
     i = GameBoard.display_border + GameBoard.display_cell_dimensions[0]
@@ -176,7 +174,7 @@ def build_grid(GameBoard: Board):
         i += GameBoard.display_cell_dimensions[1]
 
 
-def display_people(GameBoard):
+def display_people(GameBoard: Board):
     """
     Draw the people (government, vaccinated, and zombies) on the grid.
     """
@@ -229,7 +227,7 @@ def display_lose_screen():
                 return
 
 
-def direction(coord1, coord2):
+def direction(coord1: Tuple[int, int], coord2: Tuple[int, int]):
     if coord2[1] > coord1[1]:
         return "moveDown"
     elif coord2[1] < coord1[1]:
