@@ -9,6 +9,7 @@ COLUMNS = 6
 BORDER = 150                    # Number of pixels to offset grid to the top-left side
 CELL_DIMENSIONS = (100,100)     # Number of pixels (x,y) for each cell
 ACTION_SPACE = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
+SELF_PLAY = False
 
 # Player role variables
 player_role = "Government"      # Valid options are "Government" and "Zombie"
@@ -20,7 +21,6 @@ GameBoard = Board((ROWS,COLUMNS), BORDER, CELL_DIMENSIONS, roleToRoleNum[player_
 GameBoard.populate()
 
 # Self play variables
-QTable = []
 alpha = 0.1
 gamma = 0.6
 epsilon = 0.1
@@ -28,17 +28,19 @@ epochs = 1000
 epochs_ran = 0
 Original_Board = GameBoard.clone(GameBoard.States)
 
+
 # Initialize variables
 running = True
 take_action = []
-self_play = True
 playerMoved = False
 font = pygame.font.SysFont("Comic Sans", 20)
+
+
 
 while running:
     P = PF.run(GameBoard)
 
-    if self_play:
+    if SELF_PLAY:
         
         # Event Handling
         for event in P:
@@ -142,15 +144,16 @@ while running:
         for event in P:
             i = 0
             r = rd.uniform(0.0, 1.0)
-            st = rd.randint(0, len(GameBoard.States))
-            state = QTable[st]
+            st = rd.randint(0, len(GameBoard.States) - 1)
+            state = GameBoard.QTable[st]
+
             if r < gamma:
                 while GameBoard.States[st].person is None:
-                    st = rd.randint(0, len(GameBoard.States))
+                    st = rd.randint(0, len(GameBoard.States) - 1)
             else:
                 biggest = None
                 for x in range(len(GameBoard.States)):
-                    arr = QTable[x]
+                    arr = GameBoard.QTable[x]
                     exp = sum(arr) / len(arr)
                     if biggest is None:
                         biggest = exp
@@ -161,7 +164,7 @@ while running:
                     elif biggest > exp and player_role != "Government":
                         biggest = exp
                         i = x
-                state = QTable[i]
+                state = GameBoard.QTable[i]
             b = 0
             j = 0
             ind = 0
@@ -176,12 +179,14 @@ while running:
             action_to_take = ACTION_SPACE[ind]
             old_qval = b
             old_state = i
-
+            
+            # Update
+            # Q(S, A) = Q(S, A) + alpha[R + gamma * max_a Q(S', A) - Q(S, A)]
             reward = GameBoard.act(old_state, action_to_take)
             ns = reward[1]
             NewStateAct = GameBoard.QGreedyat(ns)
-            NS = QTable[ns][NewStateAct[0]]
-            QTable[i] = QTable[i] + alpha * (reward[0] + gamma * NS) - QTable[i]
+            NS = GameBoard.QTable[ns][NewStateAct[0]]
+            #GameBoard.QTable[i] = GameBoard.QTable[i] + alpha * (reward[0] + gamma * NS) - GameBoard.QTable[i]
             if GameBoard.num_zombies() == 0:
                 print("winCase")
 
@@ -197,21 +202,22 @@ while running:
                 r = rd.randint(0, 4)
                 ta = ACTION_SPACE[r]
             poss = GameBoard.get_possible_moves(ta, "Zombie")
-            r = rd.randint(0, len(poss) - 1)
-            a = poss[r]
-            G = False
-            if ta == "moveUp":
-                G = GameBoard.moveUp(a)
-            elif ta == "moveDown":
-                G = GameBoard.moveDown(a)
-            elif ta == "moveLeft":
-                G = GameBoard.moveLeft(a)
-            elif ta == "moveRight":
-                G = GameBoard.moveRight(a)
-            elif ta == "bite":
-                G = GameBoard.bite(a)
-            elif ta == "heal":
-                G = GameBoard.heal(a)
+            
+            if len(poss) > 0:
+                r = rd.randint(0, len(poss) - 1)
+                a = poss[r]
+                if ta == "moveUp":
+                    GameBoard.moveUp(a)
+                elif ta == "moveDown":
+                    GameBoard.moveDown(a)
+                elif ta == "moveLeft":
+                    GameBoard.moveLeft(a)
+                elif ta == "moveRight":
+                    GameBoard.moveRight(a)
+                elif ta == "bite":
+                    GameBoard.bite(a)
+                elif ta == "heal":
+                    GameBoard.heal(a)
             if GameBoard.num_zombies() == GameBoard.population:
                 print("loseCase")
             if event.type == pygame.QUIT:

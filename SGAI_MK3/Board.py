@@ -6,21 +6,15 @@ from typing import Tuple
 
 
 class Board:
-    States = []
-    QTable = []
-    rows = 0
-    columns = 0
-    display_border = 0
-    display_cell_dimensions = ()
-    population = 0
-    Player_Role = 0
-
     def __init__(self, dimensions, border, cell_dimensions, pr):
         self.rows = dimensions[0]
         self.columns = dimensions[1]
         self.display_border = border
         self.display_cell_dimensions = cell_dimensions
         self.Player_Role = pr
+        self.population = 0
+        self.States = []
+        self.QTable = []
         for s in range(dimensions[0] * dimensions[1]):
             self.States.append(State(None, s))
             self.QTable.append([0] * 6)
@@ -50,7 +44,7 @@ class Board:
             f = self.bite(cell)
         reward = self.States[oldstate].evaluate(givenAction, self)
         if f[0] == False:
-            reward = reward * 0
+            reward = 0
         return [reward, f[1]]
 
     def get_possible_moves(self, action, role):
@@ -157,13 +151,13 @@ class Board:
         If invalid, then return [False, None]
         If the space is currently occupied, then return [False, destination_idx]
         """
-        # Check if the new coordinates are valid
-        if not self.isValidCoordinate(new_coords):
-            return [False, None]
-        
         # Get the start and destination index (1D)
         start_idx = self.toIndex(from_coords)
         destination_idx = self.toIndex(new_coords)
+        
+        # Check if the new coordinates are valid
+        if not self.isValidCoordinate(new_coords):
+            return [False, destination_idx]
         
         # Check if the destination is currently occupied
         if self.States[destination_idx].person is None:
@@ -194,7 +188,7 @@ class Board:
         A = self.QTable[state_id]
         i = 0
         for qval in A:
-            if (qval * self.Player_Role) > self.biggest:
+            if (qval * self.Player_Role) > biggest:
                 biggest = qval
                 ind = i
             i += 1
