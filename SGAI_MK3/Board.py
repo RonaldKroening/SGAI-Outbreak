@@ -14,10 +14,12 @@ class Board:
     Player_Role = 0
     action_space = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
 
-    def __init__(self, dimensions, pr):
+    def __init__(self, dimensions, offset, cellsize, role):
         self.rows = dimensions[0]
         self.columns = dimensions[1]
-        self.Player_Role = pr
+        self.offset = offset
+        self.cellsize = cellsize
+        self.Player_Role = role
         for s in range(dimensions[0] * dimensions[1]):
             self.States.append(State(None, s))
             self.QTable.append([0] * 6)
@@ -59,7 +61,7 @@ class Board:
         is valid and which people/zombies it applies to
         """
         poss = []
-        B = self.clone(self.States, self.Player_Role)
+        B = self.clone()
 
         if role == "Zombie":
             for idx in range(len(self.States)):
@@ -69,9 +71,7 @@ class Board:
                     if action == "bite":
                         # if the current space isn't a zombie and it is adjacent
                         # a space that is a zombie
-                        if not state.person.isZombie and self.isAdjacentTo(
-                            self.toCoord(idx), True
-                        ):
+                        if not state.person.isZombie and self.isAdjacentTo(self.toCoord(idx), True):
                             poss.append(B.toCoord(state.location))
                     else:
                         if state.person.isZombie:
@@ -111,6 +111,7 @@ class Board:
                                     print("validRi")
                                     poss.append(B.toCoord(state.location))
         print("possible: ", poss)
+        del B
         return poss
 
     def toCoord(self, i):
@@ -124,13 +125,12 @@ class Board:
             coordinates[1] < self.rows
             and coordinates[1] >= 0
             and coordinates[0] < self.columns
-            and coordinates[0] >= 0
-        )
+            and coordinates[0] >= 0)
 
-    def clone(self, L: list, role):
-        NB = Board((self.rows, self.columns), role)
-        NB.States = L.copy()
-        NB.Player_Role = role
+    def clone(self):
+        NB = Board((self.rows, self.columns), self.offset, self.cellsize, self.Player_Role)
+        NB.States = self.States.copy()
+        NB.Player_Role = self.Player_Role
         return NB
 
     def isAdjacentTo(self, coord, is_zombie: bool) -> bool:
@@ -264,9 +264,8 @@ class Board:
             chance = 50
         r = rd.randint(0, 100)
         if r < chance:
-            newP = p.clone()
-            newP.isZombie = True
-            self.States[i].person = newP
+            p.isZombie = True
+            self.States[i].person = p
         return [True, i]
 
     def heal(self, coords):
@@ -274,14 +273,13 @@ class Board:
         if self.States[i] is None:
             return False
         p = self.States[i].person
-        newP = p.clone()
-        newP.isZombie = False
-        if newP.wasCured == False:
-            newP.wasCured = True
-        if newP.isVaccinated == False:
-            newP.isVaccinated = True
-            newP.turnsVaccinated = 1
-        self.States[i].person = newP
+        p.isZombie = False
+        if p.wasCured == False:
+            p.wasCured = True
+        if p.isVaccinated == False:
+            p.isVaccinated = True
+            p.turnsVaccinated = 1
+        self.States[i].person = p
         return [True, i]
 
     def get_possible_states(self, rn):

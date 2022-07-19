@@ -6,6 +6,11 @@ class State:
     person = None
     location = 0
 
+    def __init__(self, p: Person, i) -> None:
+        self.person = p
+        self.location = i
+        pass
+
     def distance(self, other_id):
         first_coord = self.toCoord(self.location)
         second_coord = self.toCoord(other_id)
@@ -67,9 +72,5 @@ class State:
     def clone(self):
         if self.person is None:
             return State(self.person, self.location)
-        return State(self.person.clone(), self.location)
+        return State(self.person, self.location)
 
-    def __init__(self, p: Person, i) -> None:
-        self.person = p
-        self.location = i
-        pass

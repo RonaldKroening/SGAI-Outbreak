@@ -65,7 +65,7 @@ def run(GameBoard, bd):
     display_image(screen, "Assets/cure.jpeg", cell_dimensions, (950, 200))
     # pygame.display.flip()
     display_people(GameBoard.States, bd)
-    return pygame.event.get()
+    pass
 
 
 def display_board(screen, Board):
