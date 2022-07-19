@@ -70,8 +70,7 @@ class Board:
                 state = self.States[idx]
                 if state.person is not None:
                     if action == "bite":
-                        # if the current space isn't a zombie and it is adjacent
-                        # a space that is a zombie
+                        # if the current space isn't a zombie and it is adjacent a space that is a zombie
                         if not state.person.isZombie and self.isAdjacentTo(
                             self.toCoord(idx), True
                         ):
@@ -107,13 +106,10 @@ class Board:
                                     poss.append(B.toCoord(state.location))
                             elif action == "moveLeft":
                                 if B.moveLeft(B.toCoord(state.location)):
-                                    print("validLe")
                                     poss.append(B.toCoord(state.location))
                             elif action == "moveRight":
                                 if B.moveRight(B.toCoord(state.location)):
-                                    print("validRi")
                                     poss.append(B.toCoord(state.location))
-        print("possible: ", poss)
         return poss
 
     def toCoord(self, i):

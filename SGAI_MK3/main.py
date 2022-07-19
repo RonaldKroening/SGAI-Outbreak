@@ -9,17 +9,17 @@ COLUMNS = 6
 BORDER = 150                    # Number of pixels to offset grid to the top-left side
 CELL_DIMENSIONS = (100,100)     # Number of pixels (x,y) for each cell
 
+# Player role variables
+player_role = "Government"      # Valid options are "Government" and "Zombie"
+roleToRoleNum = {"Government": 1, "Zombie": -1}
+roleToRoleBoolean = {"Government": False, "Zombie": True}
 
-role = "Government"  # valid options are "Government" and "Zombie"
-rn = 1
-if role == "Zombie":
-    rn = -1
-roleToIsZombieMappings = {"Government": False, "Zombie": True}
 
-GameBoard = Board((ROWS,COLUMNS), BORDER, CELL_DIMENSIONS, rn)
+GameBoard = Board((ROWS,COLUMNS), BORDER, CELL_DIMENSIONS, roleToRoleNum[player_role])
 GameBoard.populate()
 action_space = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
 running = True
+
 QTable = []
 alpha = 0.1
 gamma = 0.6
@@ -54,7 +54,7 @@ while running:
                     idx = GameBoard.toIndex(action)                         # Get the corresponding 1D index from the 2D grid location that was clicked
                     if "move" not in take_action and take_action == []:     # Check that the click corresponds to an intention to move a player
                         # Make sure that the space is not an empty space or a space of the opposite team
-                        if ( (GameBoard.States[idx].person is not None) and (GameBoard.States[idx].person.isZombie == roleToIsZombieMappings[role]) ):
+                        if ( (GameBoard.States[idx].person is not None) and (GameBoard.States[idx].person.isZombie == roleToRoleBoolean[player_role]) ):
                             take_action.append("move")
                     if take_action != []:                                   # Only append a coordinate if there is a pending "heal" or "move" intention
                         take_action.append(action)
@@ -96,58 +96,45 @@ while running:
             pygame.display.update()
             playerMoved = False
             take_action = []
-
+            
+            # Make a list of all possible actions that the computer can take
             possible_actions = [
                 action_space[i]
                 for i in range(6)
-                if (i != 4 and role == "Government") or (i != 5 and role == "Zombie")
+                if (i != 4 and player_role == "Government") or (i != 5 and player_role == "Zombie")
             ]
+            
+            # Figure out all possible moves and select an action
             possible_move_coords = []
             while len(possible_move_coords) == 0 and len(possible_actions) != 0:
-                action = ""
-                if role == "Government":  # role is player role
-                    # Random Zombie Move
-                    action = rd.choice(possible_actions)
-                    print("potential action is", action)
-                    possible_move_coords = GameBoard.get_possible_moves(
-                        action, "Zombie"
-                    )
-                else:
-                    # random government move (moves, heal)
-                    action = rd.choice(possible_actions)
-                    possible_move_coords = GameBoard.get_possible_moves(
-                        action, "Government"
-                    )
+                action = rd.choice(possible_actions)
+                possible_move_coords = GameBoard.get_possible_moves(action, "Government" if player_role == "Zombie" else "Zombie")
                 possible_actions.remove(action)
-                print("possible actions is", possible_actions)
-
-            # no valid moves, player wins
+            
+            # No valid moves, player wins
             if len(possible_actions) == 0 and len(possible_move_coords) == 0:
                 PF.display_win_screen()
                 running = False
                 continue
-
+            
+            # Select the destination coordinates
             move_coord = rd.choice(possible_move_coords)
-
-            print("action chosen is", action)
-            print("move start coord is", move_coord)
-
-            G = False
+            
+            # Implement the selected action
             if action == "moveUp":
-                G = GameBoard.moveUp(move_coord)
+                GameBoard.moveUp(move_coord)
             elif action == "moveDown":
-                G = GameBoard.moveDown(move_coord)
+                GameBoard.moveDown(move_coord)
             elif action == "moveLeft":
-                G = GameBoard.moveLeft(move_coord)
+                GameBoard.moveLeft(move_coord)
             elif action == "moveRight":
-                G = GameBoard.moveRight(move_coord)
+                GameBoard.moveRight(move_coord)
             elif action == "bite":
-                G = GameBoard.bite(move_coord)
+                GameBoard.bite(move_coord)
             elif action == "heal":
-                G = GameBoard.heal(move_coord)
+                GameBoard.heal(move_coord)
 
-            print("stopping")
-
+        # Update the display
         pygame.display.update()
 
     else:
@@ -170,10 +157,10 @@ while running:
                     if biggest is None:
                         biggest = exp
                         i = x
-                    elif biggest < exp and role == "Government":
+                    elif biggest < exp and player_role == "Government":
                         biggest = exp
                         i = x
-                    elif biggest > exp and role != "Government":
+                    elif biggest > exp and player_role != "Government":
                         biggest = exp
                         i = x
                 state = QTable[i]
@@ -181,10 +168,10 @@ while running:
             j = 0
             ind = 0
             for v in state:
-                if v > b and role == "Government":
+                if v > b and player_role == "Government":
                     b = v
                     ind = j
-                elif v < b and role != "Government":
+                elif v < b and player_role != "Government":
                     b = v
                     ind = j
                 j += 1
@@ -203,7 +190,7 @@ while running:
             take_action = []
             print("Enemy turn")
             ta = ""
-            if role == "Government":
+            if player_role == "Government":
                 r = rd.randint(0, 5)
                 while r == 4:
                     r = rd.randint(0, 5)
