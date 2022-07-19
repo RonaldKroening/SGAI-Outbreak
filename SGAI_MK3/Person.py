@@ -1,5 +1,5 @@
 class Person:
-    def __init__(self, iz):
+    def __init__(self, iz: bool):
         self.isZombie = iz
         self.wasVaccinated = False
         self.turnsVaccinated = 0

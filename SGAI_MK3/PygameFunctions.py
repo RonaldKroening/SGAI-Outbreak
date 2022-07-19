@@ -1,12 +1,15 @@
+from typing import Tuple
 import pygame
 
+from Board import Board
+
+# constants
 BACKGROUND = "#DDC2A1"
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 CELL_COLOR = (233, 222, 188)
 LINE_WIDTH = 5
-
-image_assets = [
+IMAGE_ASSETS = [
     "person_normal.png",
     "person_vax.png",
     "person_zombie.png",
@@ -27,7 +30,7 @@ RESET_MOVE_COORDS = (800, 600)
 RESET_MOVE_DIMS = (200, 50)
 
 
-def get_action(GameBoard, pixel_x, pixel_y):
+def get_action(GameBoard: Board, pixel_x: int, pixel_y: int):
     """
     Get the action that the click represents.
     If the click was on the heal button, returns "heal"
@@ -61,7 +64,7 @@ def get_action(GameBoard, pixel_x, pixel_y):
     return None
 
 
-def run(GameBoard):
+def run(GameBoard: Board):
     """
     Draw the screen and return any events.
     """
@@ -86,7 +89,12 @@ def display_reset_move_button():
     screen.blit(font.render("Reset move?", True, WHITE), RESET_MOVE_COORDS)
 
 
-def display_image(screen, itemStr, dimensions, position):
+def display_image(
+    screen: pygame.Surface,
+    itemStr: str,
+    dimensions: Tuple[int, int],
+    position: Tuple[int, int],
+):
     """
     Draw an image on the screen at the indicated position.
     """
@@ -95,7 +103,7 @@ def display_image(screen, itemStr, dimensions, position):
     screen.blit(v, position)
 
 
-def build_grid(GameBoard):
+def build_grid(GameBoard: Board):
     """
     Draw the grid on the screen.
     """
@@ -175,11 +183,11 @@ def display_people(GameBoard):
     for x in range(len(GameBoard.States)):
         if GameBoard.States[x].person != None:
             p = GameBoard.States[x].person
-            char = "Assets/" + image_assets[0]
+            char = "Assets/" + IMAGE_ASSETS[0]
             if p.isVaccinated:
-                char = "Assets/" + image_assets[1]
+                char = "Assets/" + IMAGE_ASSETS[1]
             elif p.isZombie:
-                char = "Assets/" + image_assets[2]
+                char = "Assets/" + IMAGE_ASSETS[2]
             coords = (
                 int(x % GameBoard.rows) * GameBoard.display_cell_dimensions[0]
                 + GameBoard.display_border
@@ -209,15 +217,16 @@ def display_win_screen():
 def display_lose_screen():
     screen.fill(BACKGROUND)
     screen.blit(
-        font.render("You lose lol!", True, WHITE),
-        (500, 500),
+        font.render("You lose!", True, WHITE),
+        (500, 400),
     )
     pygame.display.update()
 
     # catch quit event
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            return
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return
 
 
 def direction(coord1, coord2):

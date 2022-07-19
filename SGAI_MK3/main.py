@@ -9,7 +9,7 @@ COLUMNS = 6
 BORDER = 150  # Number of pixels to offset grid to the top-left side
 CELL_DIMENSIONS = (100, 100)  # Number of pixels (x,y) for each cell
 ACTION_SPACE = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
-SELF_PLAY = True
+SELF_PLAY = True  # whether or not a human will be playing
 
 # Player role variables
 player_role = "Government"  # Valid options are "Government" and "Zombie"
@@ -40,6 +40,10 @@ while running:
     P = PF.run(GameBoard)
 
     if SELF_PLAY:
+        if not GameBoard.containsPerson(False):
+            PF.display_lose_screen()
+            running = False
+            continue
         # Event Handling
         for event in P:
             if event.type == pygame.MOUSEBUTTONUP:
@@ -85,27 +89,19 @@ while running:
             if take_action[0] == "move":
                 if len(take_action) > 2:
                     directionToMove = PF.direction(take_action[1], take_action[2])
-                    result = [False, None]
-                    if directionToMove == "moveUp":
-                        result = GameBoard.moveUp(take_action[1])
-                    elif directionToMove == "moveDown":
-                        result = GameBoard.moveDown(take_action[1])
-                    elif directionToMove == "moveLeft":
-                        result = GameBoard.moveLeft(take_action[1])
-                    elif directionToMove == "moveRight":
-                        result = GameBoard.moveRight(take_action[1])
-                    if result[0] != False:
+                    result = GameBoard.actionToFunction[directionToMove](take_action[1])
+                    if result[0] is not False:
                         playerMoved = True
                     take_action = []
+
             elif take_action[0] == "heal":
                 result = GameBoard.heal(take_action[1])
-                if result[0] != False:
+                if result[0] is not False:
                     playerMoved = True
                 take_action = []
 
         # Computer turn
         if playerMoved:
-            pygame.display.update()
             playerMoved = False
             take_action = []
 
@@ -122,7 +118,6 @@ while running:
                 possible_move_coords = GameBoard.get_possible_moves(
                     action, "Government" if player_role == "Zombie" else "Zombie"
                 )
-                print("possible actions is", possible_actions)
 
             # no valid moves, player wins
             if len(possible_actions) == 0 and len(possible_move_coords) == 0:
@@ -134,18 +129,7 @@ while running:
             move_coord = rd.choice(possible_move_coords)
 
             # Implement the selected action
-            if action == "moveUp":
-                GameBoard.moveUp(move_coord)
-            elif action == "moveDown":
-                GameBoard.moveDown(move_coord)
-            elif action == "moveLeft":
-                GameBoard.moveLeft(move_coord)
-            elif action == "moveRight":
-                GameBoard.moveRight(move_coord)
-            elif action == "bite":
-                GameBoard.bite(move_coord)
-            elif action == "heal":
-                GameBoard.heal(move_coord)
+            GameBoard.actionToFunction[action](move_coord)
 
         # Update the display
         pygame.display.update()
@@ -219,18 +203,7 @@ while running:
             if len(poss) > 0:
                 r = rd.randint(0, len(poss) - 1)
                 a = poss[r]
-                if ta == "moveUp":
-                    GameBoard.moveUp(a)
-                elif ta == "moveDown":
-                    GameBoard.moveDown(a)
-                elif ta == "moveLeft":
-                    GameBoard.moveLeft(a)
-                elif ta == "moveRight":
-                    GameBoard.moveRight(a)
-                elif ta == "bite":
-                    GameBoard.bite(a)
-                elif ta == "heal":
-                    GameBoard.heal(a)
+                GameBoard.actionToFunction[ta](a)
             if GameBoard.num_zombies() == GameBoard.population:
                 print("loseCase")
             if event.type == pygame.QUIT:

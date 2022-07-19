@@ -2,16 +2,22 @@ from tracemalloc import start
 from State import State
 import random as rd
 from Person import Person
-from typing import Tuple
+from typing import List, Tuple
 
 
 class Board:
-    def __init__(self, dimensions, border, cell_dimensions, pr):
+    def __init__(
+        self,
+        dimensions: Tuple[int, int],
+        border: int,
+        cell_dimensions: Tuple[int, int],
+        player_role: str,
+    ):
         self.rows = dimensions[0]
         self.columns = dimensions[1]
         self.display_border = border
         self.display_cell_dimensions = cell_dimensions
-        self.Player_Role = pr
+        self.Player_Role = player_role
         self.population = 0
         self.States = []
         self.QTable = []
@@ -28,7 +34,7 @@ class Board:
             "bite": self.bite,
         }
 
-    def num_zombies(self):
+    def num_zombies(self) -> int:
         r = 0
         for state in self.States:
             if state.person != None:
@@ -36,7 +42,7 @@ class Board:
                     r += 1
         return r
 
-    def act(self, oldstate, givenAction):
+    def act(self, oldstate: Tuple[int, int], givenAction: str):
         cell = self.toCoord(oldstate)
         f = self.actionToFunction[givenAction](cell)
         reward = self.States[oldstate].evaluate(givenAction, self)
@@ -44,13 +50,13 @@ class Board:
             reward = 0
         return [reward, f[1]]
 
-    def containsPerson(self, isZombie):
+    def containsPerson(self, isZombie: bool):
         for state in self.States:
             if state.person is not None and state.person.isZombie == isZombie:
                 return True
         return False
 
-    def get_possible_moves(self, action, role):
+    def get_possible_moves(self, action: str, role: str):
         """
         Get the coordinates of people (or zombies) that are able
         to make the specified move.
@@ -59,7 +65,7 @@ class Board:
         is valid and which people/zombies it applies to
         """
         poss = []
-        B = self.clone(self.States, self.Player_Role)
+        B = self.clone(self.States, role)
 
         if role == "Zombie":
             if not self.containsPerson(True):
@@ -68,6 +74,7 @@ class Board:
                 state = self.States[idx]
                 if state.person is not None:
                     changed_states = False
+
                     if (
                         action == "bite"
                         and not state.person.isZombie
@@ -78,7 +85,8 @@ class Board:
                         poss.append(B.toCoord(state.location))
                         changed_states = True
                     elif (
-                        state.person.isZombie
+                        action != "bite"
+                        and state.person.isZombie
                         and B.actionToFunction[action](B.toCoord(state.location))[0]
                     ):
                         poss.append(B.toCoord(state.location))
@@ -107,7 +115,8 @@ class Board:
                         poss.append(B.toCoord(state.location))
                         changed_states = True
                     elif (
-                        not state.person.isZombie
+                        action != "heal"
+                        and not state.person.isZombie
                         and B.actionToFunction[action](B.toCoord(state.location))[0]
                     ):
                         poss.append(B.toCoord(state.location))
@@ -123,13 +132,13 @@ class Board:
                         ]
         return poss
 
-    def toCoord(self, i):
+    def toCoord(self, i: int):
         return (int(i % self.columns), int(i / self.rows))
 
-    def toIndex(self, coordinates):
+    def toIndex(self, coordinates: Tuple[int, int]):
         return int(coordinates[1] * self.columns) + int(coordinates[0])
 
-    def isValidCoordinate(self, coordinates):
+    def isValidCoordinate(self, coordinates: Tuple[int, int]):
         return (
             coordinates[1] < self.rows
             and coordinates[1] >= 0
@@ -137,7 +146,7 @@ class Board:
             and coordinates[0] >= 0
         )
 
-    def clone(self, L: list, role):
+    def clone(self, L: List[State], role: str):
         NB = Board(
             (self.rows, self.columns),
             self.display_border,
@@ -148,7 +157,7 @@ class Board:
         NB.Player_Role = role
         return NB
 
-    def isAdjacentTo(self, coord, is_zombie: bool) -> bool:
+    def isAdjacentTo(self, coord: Tuple[int, int], is_zombie: bool) -> bool:
         ret = False
         vals = [
             (coord[0], coord[1] + 1),
@@ -167,7 +176,9 @@ class Board:
 
         return ret
 
-    def move(self, from_coords, new_coords) -> Tuple[bool, int]:
+    def move(
+        self, from_coords: Tuple[int, int], new_coords: Tuple[int, int]
+    ) -> Tuple[bool, int]:
         """
         Check if the move is valid.
         If valid, then implement the move and return [True, destination_idx]
@@ -189,23 +200,23 @@ class Board:
             return [True, destination_idx]
         return [False, destination_idx]
 
-    def moveUp(self, coords) -> Tuple[bool, int]:
+    def moveUp(self, coords: Tuple[int, int]) -> Tuple[bool, int]:
         new_coords = (coords[0], coords[1] - 1)
         return self.move(coords, new_coords)
 
-    def moveDown(self, coords) -> Tuple[bool, int]:
+    def moveDown(self, coords: Tuple[int, int]) -> Tuple[bool, int]:
         new_coords = (coords[0], coords[1] + 1)
         return self.move(coords, new_coords)
 
-    def moveLeft(self, coords) -> Tuple[bool, int]:
+    def moveLeft(self, coords: Tuple[int, int]) -> Tuple[bool, int]:
         new_coords = (coords[0] - 1, coords[1])
         return self.move(coords, new_coords)
 
-    def moveRight(self, coords) -> Tuple[bool, int]:
+    def moveRight(self, coords: Tuple[int, int]) -> Tuple[bool, int]:
         new_coords = (coords[0] + 1, coords[1])
         return self.move(coords, new_coords)
 
-    def QGreedyat(self, state_id):
+    def QGreedyat(self, state_id: int):
         biggest = self.QTable[state_id][0] * self.Player_Role
         ind = 0
         A = self.QTable[state_id]
@@ -217,7 +228,7 @@ class Board:
             i += 1
         return [ind, self.QTable[ind]]  # action_index, qvalue
 
-    def choose_action(self, state_id, lr):
+    def choose_action(self, state_id: int, lr: float):
         L = lr * 100
         r = rd.randint(0, 100)
         if r < L:
@@ -231,7 +242,7 @@ class Board:
                     d = rd.randint(0, 4)
             return d
 
-    def choose_state(self, lr):
+    def choose_state(self, lr: float):
         L = lr * 100
         r = rd.randint(0, 100)
         if r < L:
@@ -261,7 +272,7 @@ class Board:
                     d = rd.randint(0, len(self.States))
             return d
 
-    def bite(self, coords):
+    def bite(self, coords: Tuple[int, int]) -> Tuple[bool, int]:
         i = self.toIndex(coords)
         if self.States[i] is None:
             return False
@@ -280,7 +291,7 @@ class Board:
             self.States[i].person = newP
         return [True, i]
 
-    def heal(self, coords):
+    def heal(self, coords: Tuple[int, int]) -> Tuple[bool, int]:
         """
         Heals the person at the stated coordinates
         If no person is selected, then return [False, None]
@@ -300,19 +311,19 @@ class Board:
         self.States[i].person = newP
         return [True, i]
 
-    def get_possible_states(self, rn):
+    def get_possible_states(self, role_number: int):
         indexes = []
         i = 0
         for state in self.States:
             if state.person != None:
-                if rn == 1 and state.person.isZombie == False:
+                if role_number == 1 and state.person.isZombie == False:
                     indexes.append(i)
-                elif rn == -1 and state.person.isZombie:
+                elif role_number == -1 and state.person.isZombie:
                     indexes.append(i)
             i += 1
         return indexes
 
-    def step(self, role_number, learningRate):
+    def step(self, role_number: int, learningRate: float):
         P = self.get_possible_states(role_number)
         r = rd.uniform(0, 1)
         if r < learningRate:
