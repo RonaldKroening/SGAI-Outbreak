@@ -62,7 +62,7 @@ class Board:
         is valid and which people/zombies it applies to
         """
         poss = []
-        B = self.clone(self.States, self.Player_Role)
+        B = self.clone(self.States)
 
         if role == "Zombie":
             for idx in range(len(self.States)):
@@ -126,10 +126,9 @@ class Board:
             and coordinates[0] >= 0
         )
 
-    def clone(self, L: list, role):
-        NB = Board((self.rows, self.columns), self.display_border, self.display_cell_dimensions, role)
+    def clone(self, L: list):
+        NB = Board((self.rows, self.columns), self.display_border, self.display_cell_dimensions, self.Player_Role)
         NB.States = L.copy()
-        NB.Player_Role = role
         return NB
 
     def isAdjacentTo(self, coord, is_zombie: bool) -> bool:

@@ -8,35 +8,33 @@ ROWS = 6
 COLUMNS = 6
 BORDER = 150                    # Number of pixels to offset grid to the top-left side
 CELL_DIMENSIONS = (100,100)     # Number of pixels (x,y) for each cell
+ACTION_SPACE = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
 
 # Player role variables
 player_role = "Government"      # Valid options are "Government" and "Zombie"
 roleToRoleNum = {"Government": 1, "Zombie": -1}
 roleToRoleBoolean = {"Government": False, "Zombie": True}
 
-
+#Create the game board
 GameBoard = Board((ROWS,COLUMNS), BORDER, CELL_DIMENSIONS, roleToRoleNum[player_role])
 GameBoard.populate()
-action_space = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
-running = True
 
+# Self play variables
 QTable = []
 alpha = 0.1
 gamma = 0.6
 epsilon = 0.1
-
-r = rd.uniform(0.0, 1.0)
-
-take_action = []
-
-self_play = True  # Change to false
-playerMoved = False
-
-pygame.init()
 epochs = 1000
 epochs_ran = 0
-Original_Board = GameBoard.clone(GameBoard.States, GameBoard.Player_Role)
+Original_Board = GameBoard.clone(GameBoard.States)
+
+# Initialize variables
+running = True
+take_action = []
+self_play = True
+playerMoved = False
 font = pygame.font.SysFont("Comic Sans", 20)
+
 while running:
     P = PF.run(GameBoard)
 
@@ -99,7 +97,7 @@ while running:
             
             # Make a list of all possible actions that the computer can take
             possible_actions = [
-                action_space[i]
+                ACTION_SPACE[i]
                 for i in range(6)
                 if (i != 4 and player_role == "Government") or (i != 5 and player_role == "Zombie")
             ]
@@ -175,7 +173,7 @@ while running:
                     b = v
                     ind = j
                 j += 1
-            action_to_take = action_space[ind]
+            action_to_take = ACTION_SPACE[ind]
             old_qval = b
             old_state = i
 
@@ -194,10 +192,10 @@ while running:
                 r = rd.randint(0, 5)
                 while r == 4:
                     r = rd.randint(0, 5)
-                ta = action_space[r]
+                ta = ACTION_SPACE[r]
             else:
                 r = rd.randint(0, 4)
-                ta = action_space[r]
+                ta = ACTION_SPACE[r]
             poss = GameBoard.get_possible_moves(ta, "Zombie")
             r = rd.randint(0, len(poss) - 1)
             a = poss[r]
