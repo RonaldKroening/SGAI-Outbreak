@@ -3,17 +3,16 @@ from Board import Board
 import PygameFunctions as PF
 import random as rd
 
-
-rows = 6
-columns = 6
-bd = (rows, columns)
+# Constants
+ROWS = 6
+COLUMNS = 6
 
 role = "Government"  # valid options are "Government" and "Zombie"
 rn = 1
 if role == "Zombie":
     rn = -1
 roleToIsZombieMappings = {"Government": False, "Zombie": True}
-GameBoard = Board(bd, rn)
+GameBoard = Board((ROWS,COLUMNS), rn)
 GameBoard.populate()
 print("Board Population: ", GameBoard.population)
 action_space = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
@@ -36,7 +35,7 @@ epochs_ran = 0
 Original_Board = GameBoard.clone(GameBoard.States, GameBoard.Player_Role)
 font = pygame.font.SysFont("Comic Sans", 20)
 while running:
-    P = PF.run(GameBoard, bd)
+    P = PF.run(GameBoard)
 
     if self_play:
         # get events
@@ -50,7 +49,7 @@ while running:
                 else:
                     idx = GameBoard.toIndex(action)
                     # action is a coordinate
-                    if idx < (rows * columns) and idx > -1:
+                    if idx < (GameBoard.rows * GameBoard.columns) and idx > -1:
                         if "move" not in take_action and len(take_action) == 0:
                             # make sure that the space is not an empty space or a space of the opposite team
                             # since cannot start a move from those invalid spaces

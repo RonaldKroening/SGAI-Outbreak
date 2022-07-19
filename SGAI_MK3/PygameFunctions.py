@@ -59,12 +59,12 @@ def display_people(StateList, board_dimensions):
             display_image(screen, char, (35, 60), coords)
 
 
-def run(GameBoard, bd):
+def run(GameBoard):
     screen.fill(BACKGROUND)
     build_grid(screen, 5, 100, 150)
     display_image(screen, "Assets/cure.jpeg", cell_dimensions, (950, 200))
     # pygame.display.flip()
-    display_people(GameBoard.States, bd)
+    display_people(GameBoard.States, (GameBoard.rows, GameBoard.columns))
     return pygame.event.get()
 
 
