@@ -22,6 +22,15 @@ class Board:
             self.States.append(State(None, s))
             self.QTable.append([0] * 6)
 
+        self.actionToFunction = {
+            "moveUp": self.moveUp,
+            "moveDown": self.moveDown,
+            "moveLeft": self.moveLeft,
+            "moveRight": self.moveRight,
+            "heal": self.heal,
+            "bite": self.bite,
+        }
+
     def num_zombies(self):
         r = 0
         for state in self.States:
@@ -32,19 +41,7 @@ class Board:
 
     def act(self, oldstate, givenAction):
         cell = self.toCoord(oldstate)
-        f = []
-        if givenAction == "moveUp":
-            f = self.moveUp(cell)
-        elif givenAction == "moveDown":
-            f = self.moveDown(cell)
-        elif givenAction == "moveLeft":
-            f = self.moveLeft(cell)
-        elif givenAction == "moveRight":
-            f = self.moveRight(cell)
-        elif givenAction == "heal":
-            f = self.heal(cell)
-        elif givenAction == "bite":
-            f = self.bite(cell)
+        f = self.actionToFunction[givenAction](cell)
         reward = self.States[oldstate].evaluate(givenAction, self)
         if f[0] == False:
             reward = reward * 0
@@ -71,55 +68,63 @@ class Board:
             if not self.containsPerson(True):
                 return poss
             for idx in range(len(self.States)):
-                B.States = [self.States[i].clone() for i in range(len(self.States))]
                 state = self.States[idx]
                 if state.person is not None:
-                    if action == "bite":
+                    changed_states = False
+                    if (
+                        action == "bite"
+                        and not state.person.isZombie
+                        and self.isAdjacentTo(self.toCoord(idx), True)
+                    ):
                         # if the current space isn't a zombie and it is adjacent
                         # a space that is a zombie
-                        if not state.person.isZombie and self.isAdjacentTo(
-                            self.toCoord(idx), True
-                        ):
-                            poss.append(B.toCoord(state.location))
-                    else:
-                        if state.person.isZombie:
-                            if action == "moveUp":
-                                if B.moveUp(B.toCoord(state.location))[0]:
-                                    poss.append(B.toCoord(state.location))
-                            elif action == "moveDown":
-                                if B.moveDown(B.toCoord(state.location))[0]:
-                                    poss.append(B.toCoord(state.location))
-                            elif action == "moveLeft":
-                                if B.moveLeft(B.toCoord(state.location))[0]:
-                                    poss.append(B.toCoord(state.location))
-                            elif action == "moveRight":
-                                if B.moveRight(B.toCoord(state.location))[0]:
-                                    poss.append(B.toCoord(state.location))
+                        poss.append(B.toCoord(state.location))
+                        changed_states = True
+                    elif (
+                        state.person.isZombie
+                        and B.actionToFunction[action](B.toCoord(state.location))[0]
+                    ):
+                        poss.append(B.toCoord(state.location))
+                        changed_states = True
+
+                    if changed_states:
+                        # reset the states
+                        B.States = [
+                            self.States[i].clone()
+                            if self.States[i] != B.States[i]
+                            else B.States[i]
+                            for i in range(len(self.States))
+                        ]
 
         elif role == "Government":
             if not self.containsPerson(False):
                 return poss
             for state in self.States:
-                if state.person != None:
-                    if action == "heal":
-                        if state.person.isZombie or state.person.isVaccinated == False:
-                            poss.append(B.toCoord(state.location))
-                    else:
-                        if state.person.isZombie:
-                            if action == "moveUp":
-                                if B.moveUp(B.toCoord(state.location)):
-                                    poss.append(B.toCoord(state.location))
-                            elif action == "moveDown":
-                                if B.moveDown(B.toCoord(state.location)):
-                                    poss.append(B.toCoord(state.location))
-                            elif action == "moveLeft":
-                                if B.moveLeft(B.toCoord(state.location)):
-                                    print("validLe")
-                                    poss.append(B.toCoord(state.location))
-                            elif action == "moveRight":
-                                if B.moveRight(B.toCoord(state.location)):
-                                    print("validRi")
-                                    poss.append(B.toCoord(state.location))
+                if state.person is not None:
+                    changed_states = False
+                    if (
+                        action == "heal"
+                        and state.person.isZombie
+                        or not state.person.isVaccinated
+                    ):
+                        poss.append(B.toCoord(state.location))
+                        changed_states = True
+                    elif (
+                        not state.person.isZombie
+                        and B.actionToFunction[action](B.toCoord(state.location))[0]
+                    ):
+                        poss.append(B.toCoord(state.location))
+                        changed_states = True
+
+                    if changed_states:
+                        # reset the states
+                        B.States = [
+                            self.States[i].clone()
+                            if self.States[i] != B.States[i]
+                            else B.States[i]
+                            for i in range(len(self.States))
+                        ]
+
         print("possible: ", poss)
         return poss
 
@@ -139,7 +144,7 @@ class Board:
 
     def clone(self, L: list, role):
         NB = Board((self.rows, self.columns), role)
-        NB.States = L.copy()
+        NB.States = [state.clone() for state in L]
         NB.Player_Role = role
         return NB
 

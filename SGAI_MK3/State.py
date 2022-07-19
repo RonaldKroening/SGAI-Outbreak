@@ -73,3 +73,11 @@ class State:
         self.person = p
         self.location = i
         pass
+
+    def __eq__(self, __o: object) -> bool:
+        if type(__o) == State:
+            return self.person == __o.person and self.location == __o.location
+        return False
+
+    def __ne__(self, __o: object) -> bool:
+        return not self == __o

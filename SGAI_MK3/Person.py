@@ -21,3 +21,14 @@ class Person:
 
     def __repr__(self) -> str:
         return str(self)
+
+    def __eq__(self, __o: object) -> bool:
+        if type(__o) == Person:
+            return (
+                self.wasVaccinated == __o.wasVaccinated
+                and self.turnsVaccinated == __o.turnsVaccinated
+                and self.isVaccinated == __o.isVaccinated
+                and self.isZombie == __o.isZombie
+                and self.wasCured == __o.wasCured
+            )
+        return False
