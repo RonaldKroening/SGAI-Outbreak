@@ -62,38 +62,39 @@ while running:
             if event.type == pygame.QUIT:
                 running = False
         
-        # display what take action currently is
+        # Display the current action
         PF.screen.blit(
             font.render("Your move is currently:", True, PF.WHITE),
             (800, 400),
         )
         PF.screen.blit(font.render(f"{take_action}", True, PF.WHITE), (800, 450))
 
-        # time for player to do stuff
+        # Action handling
         if len(take_action) > 1:
             if take_action[0] == "move":
                 if len(take_action) > 2:
                     directionToMove = PF.direction(take_action[1], take_action[2])
-                    g = False
+                    result = [False, None]
                     if directionToMove == "moveUp":
                         print("goin to ", directionToMove)
-                        g = GameBoard.moveUp(take_action[1])
+                        result = GameBoard.moveUp(take_action[1])
                     elif directionToMove == "moveDown":
                         print("goin to ", directionToMove)
-                        g = GameBoard.moveDown(take_action[1])
+                        result = GameBoard.moveDown(take_action[1])
                     elif directionToMove == "moveLeft":
                         print("goin to ", directionToMove)
-                        g = GameBoard.moveLeft(take_action[1])
+                        result = GameBoard.moveLeft(take_action[1])
                     elif directionToMove == "moveRight":
                         print("goin to ", directionToMove)
-                        g = GameBoard.moveRight(take_action[1])
-                    print(f"did it succeed? {g[0]}")
-                    playerMoved = True
+                        result = GameBoard.moveRight(take_action[1])
+                    if result[0] != False:
+                        playerMoved = True
                     take_action = []
             elif take_action[0] == "heal":
                 print("Heal person at ", take_action[1])
-                GameBoard.heal(take_action[1])
-                playerMoved = True
+                result = GameBoard.heal(take_action[1])
+                if result[0] != False:
+                    playerMoved = True
                 take_action = []
 
         # computer turn

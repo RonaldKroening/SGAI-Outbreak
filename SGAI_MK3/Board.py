@@ -156,26 +156,26 @@ class Board:
         return ret
 
     def move(self, from_coords, new_coords) -> Tuple[bool, int]:
-        start_idx = self.toIndex(from_coords)
-
-        # idk why this line is here, but I kept it from the original code just in case
-        destination_idx = int(new_coords[0] % self.columns) + int(
-            new_coords[1] * self.rows
-        )
-
+        """
+        Check if the move is valid.
+        If valid, then implement the move and return [True, destination_idx]
+        If invalid, then return [False, None]
+        If the space is currently occupied, then return [False, destination_idx]
+        """
+        # Check if the new coordinates are valid
         if not self.isValidCoordinate(new_coords):
-            return [False, destination_idx]
-
+            return [False, None]
+        
+        # Get the start and destination index (1D)
+        start_idx = self.toIndex(from_coords)
         destination_idx = self.toIndex(new_coords)
-        try:
-            # only allow a move if the space isn't already occupied
-            if self.States[destination_idx].person is None:
-                self.States[destination_idx].person = self.States[start_idx].person
-                self.States[start_idx].person = None
-                return [True, destination_idx]
-            return [False, destination_idx]
-        except:
-            return [False, destination_idx]
+        
+        # Check if the destination is currently occupied
+        if self.States[destination_idx].person is None:
+            self.States[destination_idx].person = self.States[start_idx].person
+            self.States[start_idx].person = None
+            return [True, destination_idx]
+        return [False, destination_idx]
 
     def moveUp(self, coords) -> Tuple[bool, int]:
         new_coords = (coords[0], coords[1] - 1)
@@ -273,9 +273,14 @@ class Board:
         return [True, i]
 
     def heal(self, coords):
+        """
+        Heals the person at the stated coordinates
+        If no person is selected, then return [False, None]
+        if a person is vaccined, then return [True, index]
+        """
         i = self.toIndex(coords)
         if self.States[i].person is None:
-            return False
+            return [False, None]
         p = self.States[i].person
         newP = p.clone()
         newP.isZombie = False
