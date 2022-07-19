@@ -179,22 +179,18 @@ class Board:
 
     def moveUp(self, coords) -> Tuple[bool, int]:
         new_coords = (coords[0], coords[1] - 1)
-        print(f"going from {coords} to new coords {new_coords}")
         return self.move(coords, new_coords)
 
     def moveDown(self, coords) -> Tuple[bool, int]:
         new_coords = (coords[0], coords[1] + 1)
-        print(f"going from {coords} to new coords {new_coords}")
         return self.move(coords, new_coords)
 
     def moveLeft(self, coords) -> Tuple[bool, int]:
         new_coords = (coords[0] - 1, coords[1])
-        print(f"going from {coords} to new coords {new_coords}")
         return self.move(coords, new_coords)
 
     def moveRight(self, coords) -> Tuple[bool, int]:
         new_coords = (coords[0] + 1, coords[1])
-        print(f"going from {coords} to new coords {new_coords}")
         return self.move(coords, new_coords)
 
     def QGreedyat(self, state_id):
@@ -340,7 +336,6 @@ class Board:
                 poss.append(x)
             else:
                 self.States[x].person = None
-        print("people at ", poss)
         used = []
         for x in range(4):
             s = rd.randint(0, len(poss) - 1)

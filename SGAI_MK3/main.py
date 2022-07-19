@@ -18,7 +18,6 @@ roleToIsZombieMappings = {"Government": False, "Zombie": True}
 
 GameBoard = Board((ROWS,COLUMNS), BORDER, CELL_DIMENSIONS, rn)
 GameBoard.populate()
-print("Board Population: ", GameBoard.population)
 action_space = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
 running = True
 QTable = []
@@ -76,33 +75,27 @@ while running:
                     directionToMove = PF.direction(take_action[1], take_action[2])
                     result = [False, None]
                     if directionToMove == "moveUp":
-                        print("goin to ", directionToMove)
                         result = GameBoard.moveUp(take_action[1])
                     elif directionToMove == "moveDown":
-                        print("goin to ", directionToMove)
                         result = GameBoard.moveDown(take_action[1])
                     elif directionToMove == "moveLeft":
-                        print("goin to ", directionToMove)
                         result = GameBoard.moveLeft(take_action[1])
                     elif directionToMove == "moveRight":
-                        print("goin to ", directionToMove)
                         result = GameBoard.moveRight(take_action[1])
                     if result[0] != False:
                         playerMoved = True
                     take_action = []
             elif take_action[0] == "heal":
-                print("Heal person at ", take_action[1])
                 result = GameBoard.heal(take_action[1])
                 if result[0] != False:
                     playerMoved = True
                 take_action = []
 
-        # computer turn
+        # Computer turn
         if playerMoved:
             pygame.display.update()
             playerMoved = False
             take_action = []
-            print("Enemy turn")
 
             possible_actions = [
                 action_space[i]
