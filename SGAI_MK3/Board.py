@@ -276,24 +276,14 @@ class Board:
         i = self.toIndex(coords)
         if self.States[i] is None:
             return False
-        chance = 100
-        p = self.States[i].person
-        if p.isVaccinated:
-            chance = 0
-        elif p.wasVaccinated != p.wasCured:
-            chance = 75
-        elif p.wasVaccinated and p.wasCured:
-            chance = 50
-        r = rd.randint(0, 100)
-        if r < chance:
-            newP = p.clone()
-            newP.isZombie = True
-            self.States[i].person = newP
+        self.States[i].person.get_bitten()
         return [True, i]
 
     def heal(self, coords: Tuple[int, int]) -> Tuple[bool, int]:
         """
-        Heals the person at the stated coordinates
+        Cures or vaccinates the person at the stated coordinates.
+        If there is a zombie there, the person will be cured.
+        If there is a person there, the person will be vaccinated
         If no person is selected, then return [False, None]
         if a person is vaccined, then return [True, index]
         """
@@ -301,14 +291,11 @@ class Board:
         if self.States[i].person is None:
             return [False, None]
         p = self.States[i].person
-        newP = p.clone()
-        newP.isZombie = False
-        if newP.wasCured == False:
-            newP.wasCured = True
-        if newP.isVaccinated == False:
-            newP.isVaccinated = True
-            newP.turnsVaccinated = 1
-        self.States[i].person = newP
+
+        if p.isZombie:
+            p.get_cured()
+        else:
+            p.get_vaccinated()
         return [True, i]
 
     def get_possible_states(self, role_number: int):
@@ -366,3 +353,12 @@ class Board:
                 s = rd.randint(0, len(poss) - 1)
             self.States[poss[s]].person.isZombie = True
             used.append(s)
+
+    def update(self):
+        """
+        Update each of the states;
+        This method should be called at the end of each round
+        (after player and computer have each gone once)
+        """
+        for state in self.States:
+            state.update()

@@ -77,3 +77,11 @@ class State:
 
     def __ne__(self, __o: object) -> bool:
         return not self == __o
+
+    def update(self):
+        """
+        If this has a person, update the person within.
+        """
+        if self.person is None:
+            return
+        self.person.update()

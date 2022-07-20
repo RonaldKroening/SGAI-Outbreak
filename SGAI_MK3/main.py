@@ -131,6 +131,9 @@ while running:
             # Implement the selected action
             GameBoard.actionToFunction[action](move_coord)
 
+            # update the board's states
+            GameBoard.update()
+
         # Update the display
         pygame.display.update()
 
