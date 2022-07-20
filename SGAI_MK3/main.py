@@ -4,7 +4,7 @@ import PygameFunctions as PF
 import random as rd
 
 # Constants
-SELF_PLAY = True
+SELF_PLAY = False
 ROWS = 6
 COLUMNS = 6
 OFFSET = 100                    # Number of pixels to offset grid to the top-left side
@@ -39,7 +39,7 @@ font = pygame.font.SysFont("Comic Sans", 20)
 while running:
     PF.run(GameBoard)
 
-    if SELF_PLAY:
+    if not SELF_PLAY:
         # Event Handling
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP:
@@ -89,7 +89,6 @@ while running:
                 if result[0] != False:
                     playerMoved = True
                 take_action = []
-         
         
         # Computer turn
         if playerMoved:
@@ -135,6 +134,11 @@ while running:
 
         # Update the display
         pygame.display.update()
+    
+    else:
+        # Simulate gameplay without player input
+        # Use a reinforcement learning approach
+        pass
         
     """
     else:

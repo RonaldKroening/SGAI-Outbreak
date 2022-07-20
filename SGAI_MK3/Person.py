@@ -13,6 +13,24 @@ class Person:
         self.isInfected = True if this_condition == "Infected" else False
         self.wasCured = False
 
+    def infect_person(self):
+        """
+        Infects the current person.
+        """
+        self.condition = "Infected"
+        self.isInfected = True
+    
+    def heal_person(self):
+        """
+        Heals the current person.
+        """
+        self.condition = "Cured"
+        self.isInfected = False
+        self.wasCured = True
+        self.isVaccinated = True
+        self.turnsVaccinated = 1
+    
+    """
     def distance(self, other_index):
         first_coord = self.toCoord(self.location)
         second_coord = self.toCoord(other_index)
@@ -67,20 +85,4 @@ class Person:
         for r in remove:
             moves.pop(r)
         return moves
-
-    def infect_person(self):
-        """
-        Infects the current person.
-        """
-        self.condition = "Infected"
-        self.isInfected = True
-    
-    def heal_person(self):
-        """
-        Heals the current person.
-        """
-        self.condition = "Cured"
-        self.isInfected = False
-        self.wasCured = True
-        self.isVaccinated = True
-        self.turnsVaccinated = 1
+    """

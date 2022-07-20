@@ -1,6 +1,5 @@
 import random as rd
 from Person import Person
-from typing import Tuple
 
 class Board:
     """
@@ -15,8 +14,8 @@ class Board:
         self.player_role = role
         self.population = 0
         self.people = []    # stores a list of all people (healthy and infected)
-        self.state = []    # stores the current inhabitant of each location (in 1D index)
-        self.QTable = []
+        self.state = []     # stores the current inhabitant of each location (in 1D index)
+        self.QTable = []    # To be used for reinforcement learning
         for s in range(self.rows * self.columns):
             self.QTable.append([0] * 6)
             self.state.append(None)
@@ -30,29 +29,6 @@ class Board:
             if person.isInfected:
                 infected_count += 1
         return infected_count
-    
-    """
-    Not used.
-    def act(self, oldstate, givenAction):
-        cell = self.toCoord(oldstate)
-        f = []
-        if givenAction == "moveUp":
-            f = self.moveUp(cell)
-        elif givenAction == "moveDown":
-            f = self.moveDown(cell)
-        elif givenAction == "moveLeft":
-            f = self.moveLeft(cell)
-        elif givenAction == "moveRight":
-            f = self.moveRight(cell)
-        elif givenAction == "heal":
-            f = self.heal(cell)
-        elif givenAction == "bite":
-            f = self.bite(cell)
-        reward = self.states[oldstate].evaluate(givenAction, self)
-        if f[0] == False:
-            reward = 0
-        return [reward, f[1]]
-    """
     
     def get_possible_moves(self, action, role):
         """
@@ -125,7 +101,7 @@ class Board:
         new_board.state = self.people.copy()
         return new_board
 
-    def isAdjacentTo(self, coord, is_infected: bool) -> bool:
+    def isAdjacentTo(self, coord, is_infected: bool):
         ret = False
         vals = [
             (coord[0], coord[1] + 1),
@@ -142,9 +118,10 @@ class Board:
 
         return ret
 
-    def move(self, from_coords, new_coords, real) -> Tuple[bool, int]:
+    def move(self, from_coords, new_coords, real):
         """
         Check if the move is valid.
+        real - If False, the person will not actually be moved. Set to True if person should be moved.
         If valid, then implement the move and return [True, destination_idx]
         If invalid, then return [False, None]
         If the space is currently occupied, then return [False, destination_idx]
@@ -168,22 +145,131 @@ class Board:
         # Return False if destination is occupied
         return [False, destination_index]
 
-    def moveUp(self, coords, real) -> Tuple[bool, int]:
+    def moveUp(self, coords, real):
         new_coords = (coords[0], coords[1] - 1)
         return self.move(coords, new_coords, real)
 
-    def moveDown(self, coords, real) -> Tuple[bool, int]:
+    def moveDown(self, coords, real):
         new_coords = (coords[0], coords[1] + 1)
         return self.move(coords, new_coords, real)
 
-    def moveLeft(self, coords, real) -> Tuple[bool, int]:
+    def moveLeft(self, coords, real):
         new_coords = (coords[0] - 1, coords[1])
         return self.move(coords, new_coords, real)
 
-    def moveRight(self, coords, real) -> Tuple[bool, int]:
+    def moveRight(self, coords, real):
         new_coords = (coords[0] + 1, coords[1])
         return self.move(coords, new_coords, real)
 
+    def bite(self, coords):
+        """
+        Infect a player.
+        Return False if there is no player in the lcoation.
+        Return [True, index] if the player has been infected.
+        """
+        index = self.toIndex(coords)
+        
+        # Return False if no person is at the location
+        if self.state[index] is None:
+            return False
+        
+        # Get odds of infecting a player
+        chance = 100
+        if self.state[index].isVaccinated:
+            chance = 0
+        elif self.state[index].wasVaccinated != self.state[index].wasCured:
+            chance = 75
+        elif self.state[index].wasVaccinated and self.state[index].wasCured:
+            chance = 50
+            
+        # Check if infection will occur
+        r = rd.randint(0, 100)
+        if r < chance:
+            self.state[index].infect_person()
+        return [True, index]
+
+    def heal(self, coords):
+        """
+        Heals the person at the stated coordinates.
+        If no person is selected, then return [False, None]
+        If person is already cured, then return [False, None]
+        if a person has now been healed, then return [True, index]
+        """
+        index = self.toIndex(coords)
+        
+        # Return False if no person is at the location
+        if self.state[index] is None:
+            return [False, None]
+        
+        # Return False if the person is already cured
+        if self.state[index].wasCured:
+            return [False, None]
+        
+        # Heal the person
+        self.state[index].heal_person()
+        return [True, index]
+
+    def populate(self):
+        """
+        Populate the board with people.
+        Clears the existing state list and people list
+        """
+        
+        # Clear the board and player list
+        self.state = []
+        for s in range(self.rows * self.columns):
+            self.state.append(None)
+        self.people = []
+        
+        # Determine how many people to create
+        target_population_size = rd.randint(7, int((self.rows * self.columns) / 3))
+        
+        # Make a list of unique positions to add healthy people
+        location_healthy_set = set()    # Use a set for placing people because duplicates will automatically be deleted.
+        while len(location_healthy_set) < target_population_size:
+            selected_index = rd.randint(0, int(self.rows * self.columns) - 1)
+            location_healthy_set.add(selected_index)
+        
+        # Add healthy people to each of the unique positions
+        for index in location_healthy_set:
+            this_healthy_person = Person(len(self.people), "Healthy", index)
+            self.people.append( this_healthy_person )
+            self.state[index] = this_healthy_person
+        
+        # Set the population attribute
+        self.population = len(location_healthy_set)
+
+        # Make a list of some of the created people to change them to "Infected" at random
+        location_infected_set = set()
+        while len(location_infected_set) < 4:    # Four is an arbitrary number
+            selected_index = rd.choice(list(location_healthy_set))  # Have to convert the set to a list in order to select with rd.choice
+            location_infected_set.add(selected_index)
+        
+        # Change the person to infected
+        for index in location_infected_set:
+            self.state[index].infect_person()
+        
+    """
+    def act(self, oldstate, givenAction):
+        cell = self.toCoord(oldstate)
+        f = []
+        if givenAction == "moveUp":
+            f = self.moveUp(cell)
+        elif givenAction == "moveDown":
+            f = self.moveDown(cell)
+        elif givenAction == "moveLeft":
+            f = self.moveLeft(cell)
+        elif givenAction == "moveRight":
+            f = self.moveRight(cell)
+        elif givenAction == "heal":
+            f = self.heal(cell)
+        elif givenAction == "bite":
+            f = self.bite(cell)
+        reward = self.states[oldstate].evaluate(givenAction, self)
+        if f[0] == False:
+            reward = 0
+        return [reward, f[1]]
+        
     def QGreedyat(self, state_id):
         biggest = self.QTable[state_id][0] * self.player_role
         ind = 0
@@ -239,55 +325,7 @@ class Board:
                 ):
                     d = rd.randint(0, len(self.state))
             return d
-
-    def bite(self, coords):
-        """
-        Infect a player.
-        Return False if there is no player in the lcoation.
-        Return [True, index] if the player has been infected.
-        """
-        index = self.toIndex(coords)
-        
-        # Return False if no person is at the location
-        if self.state[index] is None:
-            return False
-        
-        # Get odds of infecting a player
-        chance = 100
-        if self.state[index].isVaccinated:
-            chance = 0
-        elif self.state[index].wasVaccinated != self.state[index].wasCured:
-            chance = 75
-        elif self.state[index].wasVaccinated and self.state[index].wasCured:
-            chance = 50
-            
-        # Check if infection will occur
-        r = rd.randint(0, 100)
-        if r < chance:
-            self.state[index].infect_person()
-        return [True, index]
-
-    def heal(self, coords):
-        """
-        Heals the person at the stated coordinates.
-        If no person is selected, then return [False, None]
-        If person is already cured, then return [False, None]
-        if a person has now been healed, then return [True, index]
-        """
-        index = self.toIndex(coords)
-        
-        # Return False if no person is at the location
-        if self.state[index] is None:
-            return [False, None]
-        
-        # Return False if the person is already cured
-        if self.state[index].wasCured:
-            return [False, None]
-        
-        # Heal the person
-        self.state[index].heal_person()
-        return [True, index]
-
+    
     def get_possible_states(self, rn):
         indexes = []
         i = 0
@@ -323,47 +361,7 @@ class Board:
         # next_max = np.max(QTable[next_state])
         # new_value = (1 - alpha) * old_value + alpha * (reward + gamma * next_max)
         # QTable[state][acti] = new_value
-
-    def populate(self):
-        """
-        Populate the board with people.
-        Clears the existing state list and people list
-        """
         
-        # Clear the board and player list
-        self.state = []
-        for s in range(self.rows * self.columns):
-            self.state.append(None)
-        self.people = []
-        
-        # Determine how many people to create
-        target_population_size = rd.randint(7, int((self.rows * self.columns) / 3))
-        
-        # Make a list of unique positions to add healthy people
-        location_healthy_set = set()    # Use a set for placing people because duplicates will automatically be deleted.
-        while len(location_healthy_set) < target_population_size:
-            selected_index = rd.randint(0, int(self.rows * self.columns) - 1)
-            location_healthy_set.add(selected_index)
-        
-        # Add healthy people to each of the unique positions
-        for index in location_healthy_set:
-            this_healthy_person = Person(len(self.people), "Healthy", index)
-            self.people.append( this_healthy_person )
-            self.state[index] = this_healthy_person
-        
-        # Set the population attribute
-        self.population = len(location_healthy_set)
-
-        # Make a list of some of the created people to change them to "Infected" at random
-        location_infected_set = set()
-        while len(location_infected_set) < 1:    # Four is an arbitrary number
-            selected_index = rd.choice(list(location_healthy_set))  # Have to convert the set to a list in order to select with rd.choice
-            location_infected_set.add(selected_index)
-        
-        # Change the person to infected
-        for index in location_infected_set:
-            self.state[index].infect_person()
-
     def is_person(self, index):
         # This function loops through all the people and sees if any of them are on the square it seems bad.
         # But, it is a improvement over looping across all tiles if you have a quicker way fix this!
@@ -371,4 +369,4 @@ class Board:
             if people.location == index:
                 return people
         return False
-        
+    """
