@@ -1,23 +1,20 @@
-from tracemalloc import start
 from State import State
 import random as rd
 from Person import Person
 from typing import List, Tuple
+from constants import *
 
 
 class Board:
     def __init__(
         self,
         dimensions: Tuple[int, int],
-        border: int,
-        cell_dimensions: Tuple[int, int],
         player_role: str,
     ):
         self.rows = dimensions[0]
         self.columns = dimensions[1]
-        self.display_border = border
-        self.display_cell_dimensions = cell_dimensions
-        self.Player_Role = player_role
+        self.player_role = player_role
+        self.player_num = ROLE_TO_ROLE_NUM[player_role]
         self.population = 0
         self.States = []
         self.QTable = []
@@ -148,12 +145,10 @@ class Board:
     def clone(self, L: List[State], role: str):
         NB = Board(
             (self.rows, self.columns),
-            self.display_border,
-            self.display_cell_dimensions,
-            self.Player_Role,
+            self.player_role,
         )
         NB.States = [state.clone() for state in L]
-        NB.Player_Role = role
+        NB.player_role = role
         return NB
 
     def isAdjacentTo(self, coord: Tuple[int, int], is_zombie: bool) -> bool:
@@ -216,12 +211,12 @@ class Board:
         return self.move(coords, new_coords)
 
     def QGreedyat(self, state_id: int):
-        biggest = self.QTable[state_id][0] * self.Player_Role
+        biggest = self.QTable[state_id][0] * self.player_num
         ind = 0
         A = self.QTable[state_id]
         i = 0
         for qval in A:
-            if (qval * self.Player_Role) > biggest:
+            if (qval * self.player_num) > biggest:
                 biggest = qval
                 ind = i
             i += 1
@@ -233,7 +228,7 @@ class Board:
         if r < L:
             return self.QGreedyat(state_id)
         else:
-            if self.Player_Role == 1:  # Player is Govt
+            if self.player_num == 1:  # Player is Govt
                 d = rd.randint(0, 4)
             else:
                 d = rd.randint(0, 5)
@@ -258,7 +253,7 @@ class Board:
                         sid = x
             return self.QGreedyat(sid)
         else:
-            if self.Player_Role == -1:  # Player is Govt
+            if self.player_num == -1:  # Player is Govt
                 d = rd.randint(0, len(self.States))
                 while self.States[d].person is None or self.States[d].person.isZombie:
                     d = rd.randint(0, len(self.States))
@@ -273,8 +268,12 @@ class Board:
 
     def bite(self, coords: Tuple[int, int]) -> Tuple[bool, int]:
         i = self.toIndex(coords)
-        if self.States[i] is None:
-            return False
+        if (
+            self.States[i].person is None
+            or self.States[i].person.isZombie
+            or not self.isAdjacentTo(coords, True)
+        ):
+            return [False, None]
         self.States[i].person.get_bitten()
         return [True, i]
 
