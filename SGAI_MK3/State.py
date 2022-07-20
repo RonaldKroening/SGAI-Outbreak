@@ -3,14 +3,10 @@ import math
 
 
 class State:
-    person = None
-    location = 0
-
     def __init__(self, p: Person, i) -> None:
         self.person = p
         self.location = i
         pass
-
     def distance(self, other_id):
         first_coord = self.toCoord(self.location)
         second_coord = self.toCoord(other_id)
@@ -19,19 +15,19 @@ class State:
         
         return math.pow(int(a**2 + b**2), 0.5)
 
-    def nearest_zombie(self, B):
+    def nearest_zombie(self, GameBoard):
         smallest_dist = 100
-        for state in B.States:
+        for state in GameBoard.States:
             if state.person != None:
                 if state.person.isZombie:
-                    d = self.distance(state.id)
+                    d = self.distance(GameBoard, state.location)
                     if d < smallest_dist:
                         smallest_dist = d
         return smallest_dist
 
-    def evaluate(self, action, Board):
+    def evaluate(self, action, GameBoard):
         reward = 0
-        reward += self.nearest_zombie() - 3
+        reward += self.nearest_zombie(GameBoard) - 3
         if action == "heal":
             reward += 5
         elif action == "bite" and self.person.isZombie:
@@ -43,24 +39,22 @@ class State:
             reward = reward + int(5 * (2 + chance))
         return reward
 
-    def adjacent(self, Board):
-        newCoord = Board.toCoord(self.location)
-        print(newCoord)
+    def adjacent(self, GameBoard):
+        newCoord = GameBoard.toCoord(self.location)
         moves = [
             (newCoord[0], newCoord[1] - 1),
             (newCoord[0], newCoord[1] + 1),
             (newCoord[0] - 1, newCoord[1]),
             (newCoord[0] + 1, newCoord[1]),
         ]
-        print("moves ", moves)
         remove = []
         for i in range(4):
             move = moves[i]
             if (
                 move[0] < 0
-                or move[0] > Board.columns
+                or move[0] > GameBoard.columns
                 or move[1] < 0
-                or move[1] > Board.rows
+                or move[1] > GameBoard.rows
             ):
                 remove.append(i)
         remove.reverse()
@@ -70,4 +64,3 @@ class State:
 
     def clone(self):
         return State(self.person, self.location)
-

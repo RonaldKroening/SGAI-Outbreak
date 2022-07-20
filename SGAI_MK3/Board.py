@@ -6,18 +6,16 @@ from typing import Tuple
 
 
 class Board:
-    People = []
-    QTable = []
-    population = 0
-    action_space = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
-    
-
     def __init__(self, dimensions, offset, cellsize, role):
         self.rows = dimensions[0]
         self.columns = dimensions[1]
         self.offset = offset
         self.cellsize = cellsize
         self.Player_Role = role
+        self.population = 0
+        self.States = []
+        self.QTable = []
+        self.People = []
         for s in range(dimensions[0] * dimensions[1]):
             self.QTable.append([0] * 6)
 
@@ -46,7 +44,7 @@ class Board:
             f = self.bite(cell)
         reward = self.States[oldstate].evaluate(givenAction, self)
         if f[0] == False:
-            reward = reward * 0
+            reward = 0
         return [reward, f[1]]
 
     def get_possible_moves(self, action, role):
@@ -59,6 +57,7 @@ class Board:
         """
         poss = []
         B = self.clone()
+
 
         if role == "Zombie":
             for idx in range(len(self.States)):
@@ -101,13 +100,10 @@ class Board:
                                     poss.append(B.toCoord(state.location))
                             elif action == "moveLeft":
                                 if B.moveLeft(B.toCoord(state.location)):
-                                    print("validLe")
                                     poss.append(B.toCoord(state.location))
                             elif action == "moveRight":
                                 if B.moveRight(B.toCoord(state.location)):
-                                    print("validRi")
                                     poss.append(B.toCoord(state.location))
-        print("possible: ", poss)
         del B
         return poss
 
@@ -150,45 +146,41 @@ class Board:
         return ret
 
     def move(self, from_coords, new_coords) -> Tuple[bool, int]:
+        """
+        Check if the move is valid.
+        If valid, then implement the move and return [True, destination_idx]
+        If invalid, then return [False, None]
+        If the space is currently occupied, then return [False, destination_idx]
+        """
+        # Get the start and destination index (1D)
         start_idx = self.toIndex(from_coords)
-
-        # idk why this line is here, but I kept it from the original code just in case
-        destination_idx = int(new_coords[0] % self.columns) + int(
-            new_coords[1] * self.rows
-        )
-
+        destination_idx = self.toIndex(new_coords)
+        
+        # Check if the new coordinates are valid
         if not self.isValidCoordinate(new_coords):
             return [False, destination_idx]
-
-        destination_idx = self.toIndex(new_coords)
-        try:
-            # only allow a move if the space isn't already occupied
-            if self.States[destination_idx].person is None:
-                self.States[destination_idx].person = self.States[start_idx].person
-                self.States[start_idx].person = None
-                return [True, destination_idx]
-            return [False, destination_idx]
-        except:
-            return [False, destination_idx]
+        
+        # Check if the destination is currently occupied
+        if self.States[destination_idx].person is None:
+            self.States[destination_idx].person = self.States[start_idx].person
+            self.States[start_idx].person = None
+            return [True, destination_idx]
+        return [False, destination_idx]
 
     def moveUp(self, coords) -> Tuple[bool, int]:
         new_coords = (coords[0], coords[1] - 1)
-        print(f"going from {coords} to new coords {new_coords}")
         return self.move(coords, new_coords)
 
     def moveDown(self, coords) -> Tuple[bool, int]:
         new_coords = (coords[0], coords[1] + 1)
-        print(f"going from {coords} to new coords {new_coords}")
         return self.move(coords, new_coords)
 
     def moveLeft(self, coords) -> Tuple[bool, int]:
         new_coords = (coords[0] - 1, coords[1])
-        print(f"going from {coords} to new coords {new_coords}")
         return self.move(coords, new_coords)
 
     def moveRight(self, coords) -> Tuple[bool, int]:
         new_coords = (coords[0] + 1, coords[1])
-        print(f"going from {coords} to new coords {new_coords}")
         return self.move(coords, new_coords)
 
     def QGreedyat(self, state_id):
@@ -197,7 +189,7 @@ class Board:
         A = self.QTable[state_id]
         i = 0
         for qval in A:
-            if (qval * self.Player_Role) > self.biggest:
+            if (qval * self.Player_Role) > biggest:
                 biggest = qval
                 ind = i
             i += 1
@@ -266,9 +258,14 @@ class Board:
         return [True, i]
 
     def heal(self, coords):
+        """
+        Heals the person at the stated coordinates
+        If no person is selected, then return [False, None]
+        if a person is vaccined, then return [True, index]
+        """
         i = self.toIndex(coords)
-        if self.States[i] is None:
-            return False
+        if self.States[i].person is None:
+            return [False, None]
         p = self.States[i].person
         p.isZombie = False
         if p.wasCured == False:
@@ -316,7 +313,6 @@ class Board:
         # QTable[state][acti] = new_value
 
     def populate(self):
-
         targetpopulation = rd.randint(7, int((self.rows * self.columns) / 3))
         # using a set for placing people as then duplicates will automatically be deleted.
         poss = set()
