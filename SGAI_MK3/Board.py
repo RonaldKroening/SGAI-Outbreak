@@ -208,7 +208,7 @@ class Board:
 
         bordering = False
         for people in self.people:
-            if people.distance(index, self) == 1 and not people.isInfected:
+            if people.distance(index, self) <= 1 and not people.isInfected:
                 bordering = True
                 break
         if not bordering:

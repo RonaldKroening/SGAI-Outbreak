@@ -36,7 +36,7 @@ class Person:
         second_coord = board.toCoord(other_index)
         a = second_coord[0] - first_coord[0]
         b = second_coord[1] - first_coord[1]
-        return int((a**2 + b**2) ** 0.5)
+        return (a**2 + b**2) ** 0.5
     """
     def nearest_zombie(self, GameBoard):
         smallest_dist = 100
