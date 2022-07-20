@@ -30,6 +30,7 @@ def get_action(GameBoard, pixel_x, pixel_y):
     Return None otherwise
     """
     # Check if the user clicked on the "heal" icon, return "heal" if so
+    heal_check = pixel_x >= 900 and pixel_x <= 1100 and pixel_y > 199 and pixel_y < 301
     if heal_check:
         return "heal"
     else:

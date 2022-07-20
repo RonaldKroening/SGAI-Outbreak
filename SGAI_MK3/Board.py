@@ -4,7 +4,6 @@ import random as rd
 from Person import Person
 from typing import Tuple
 
-
 class Board:
     def __init__(self, dimensions, offset, cellsize, role):
         self.rows = dimensions[0]
