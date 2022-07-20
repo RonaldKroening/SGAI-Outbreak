@@ -33,6 +33,9 @@ running = True
 take_action = []
 playerMoved = False
 
+# Load images
+PF.load_images(GameBoard)
+
 while running:
     PF.run(GameBoard)
 
