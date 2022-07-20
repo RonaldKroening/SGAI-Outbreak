@@ -82,14 +82,14 @@ class Board:
                     ):
                         # if the current space isn't a zombie and it is adjacent
                         # a space that is a zombie
-                        poss.append(B.toCoord(state.location))
+                        poss.append(B.toCoord(idx))
                         changed_states = True
                     elif (
                         action != "bite"
                         and state.person.isZombie
-                        and B.actionToFunction[action](B.toCoord(state.location))[0]
+                        and B.actionToFunction[action](B.toCoord(idx))[0]
                     ):
-                        poss.append(B.toCoord(state.location))
+                        poss.append(B.toCoord(idx))
                         changed_states = True
 
                     if changed_states:
@@ -104,22 +104,21 @@ class Board:
         elif role == "Government":
             if not self.containsPerson(False):
                 return poss
-            for state in self.States:
+            for idx in range(len(self.States)):
+                state = self.States[idx]
                 if state.person is not None:
                     changed_states = False
-                    if (
-                        action == "heal"
-                        and state.person.isZombie
-                        or not state.person.isVaccinated
+                    if action == "heal" and (
+                        state.person.isZombie or not state.person.isVaccinated
                     ):
-                        poss.append(B.toCoord(state.location))
+                        poss.append(B.toCoord(idx))
                         changed_states = True
                     elif (
                         action != "heal"
                         and not state.person.isZombie
-                        and B.actionToFunction[action](B.toCoord(state.location))[0]
+                        and B.actionToFunction[action](B.toCoord(idx))[0]
                     ):
-                        poss.append(B.toCoord(state.location))
+                        poss.append(B.toCoord(idx))
                         changed_states = True
 
                     if changed_states:
