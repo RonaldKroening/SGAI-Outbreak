@@ -5,11 +5,10 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 CELL_COLOR = (233, 222, 188)
 LINE_WIDTH = 5
-
-image_assets = [
+IMAGE_ASSETS = [
     "person_normal.png",
     "person_vax.png",
-    "person_zombie.png",
+    "person_infect.png",
 ]
 
 # Initialize pygame
@@ -43,7 +42,7 @@ def get_action(GameBoard, pixel_x, pixel_y):
                 return (board_x, board_y)
     return None
 
-def run(GameBoard, bd):
+def run(GameBoard):
     """
     Draw the screen and return any events.
     """
@@ -86,16 +85,16 @@ def display_people(GameBoard):
     """
     Draw the people on the screen.
     """
-    for Person in GameBoard.people:
-        if Person.id == "Human":
-            char = "Assets/" + image_assets[0]
-        elif Person.id == "Cured":
-            char = "Assets/" + image_assets[1]
-        else: # only zombies right now
-            char = "Assets/" + image_assets[2]
+    for person in GameBoard.people:
+        if person.condition == "Healthy":
+            char = "Assets/" + IMAGE_ASSETS[0]
+        elif person.condition == "Cured":
+            char = "Assets/" + IMAGE_ASSETS[1]
+        else: # only infected people right now
+            char = "Assets/" + IMAGE_ASSETS[2]
         coords = (
-            int(Person.location % GameBoard.rows) * GameBoard.cell_size + GameBoard.offset + 35,
-            int(Person.location / GameBoard.columns) * GameBoard.cell_size + GameBoard.offset + 20,
+            int(person.location % GameBoard.rows) * GameBoard.cell_size + GameBoard.offset + 35,
+            int(person.location / GameBoard.columns) * GameBoard.cell_size + GameBoard.offset + 20,
             )
         display_image(screen, char, (35, 60), coords)
 

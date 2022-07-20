@@ -7,7 +7,7 @@ import random as rd
 SELF_PLAY = True
 ROWS = 6
 COLUMNS = 6
-OFFSET = 150                    # Number of pixels to offset grid to the top-left side
+OFFSET = 100                    # Number of pixels to offset grid to the top-left side
 CELL_DIMENSIONS = 100           # Number of pixels for each cell
 ACTION_SPACE = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
 
@@ -37,8 +37,8 @@ pygame.init()
 font = pygame.font.SysFont("Comic Sans", 20)
 
 while running:
-    P = PF.run(GameBoard, (ROWS, COLUMNS))
-    
+    PF.run(GameBoard)
+
     if SELF_PLAY:
         # Event Handling
         for event in pygame.event.get():
@@ -49,11 +49,12 @@ while running:
                     if take_action == []:
                         take_action.append("heal")
                 elif action != None:                                        # Otherwise, get the coordinate of a valid grid cell that was clicked
-                    idx = GameBoard.toIndex(action)                         # Get the corresponding 1D index from the 2D grid location that was clicked
+                    index = GameBoard.toIndex(action)                       # Get the corresponding 1D index from the 2D grid location that was clicked
                     if "move" not in take_action and take_action == []:     # Check that the click corresponds to an intention to move a player
                         # Make sure that the space is not an empty space or a space of the opposite team
-                        if ( (GameBoard.states[idx].person is not None) and (GameBoard.states[idx].person.isZombie == roleToRoleBoolean[player_role]) ):
-                            take_action.append("move")
+                        if GameBoard.state[index] is not None:
+                            if GameBoard.state[index].isInfected == roleToRoleBoolean[player_role]:
+                                take_action.append("move")
                     if take_action != []:                                   # Only append a coordinate if there is a pending "heal" or "move" intention
                         take_action.append(action)
             if event.type == pygame.QUIT:
@@ -73,13 +74,13 @@ while running:
                     directionToMove = PF.direction(take_action[1], take_action[2])
                     result = [False, None]
                     if directionToMove == "moveUp":
-                        result = GameBoard.moveUp(take_action[1])
+                        result = GameBoard.moveUp(take_action[1], True)
                     elif directionToMove == "moveDown":
-                        result = GameBoard.moveDown(take_action[1])
+                        result = GameBoard.moveDown(take_action[1], True)
                     elif directionToMove == "moveLeft":
-                        result = GameBoard.moveLeft(take_action[1])
+                        result = GameBoard.moveLeft(take_action[1], True)
                     elif directionToMove == "moveRight":
-                        result = GameBoard.moveRight(take_action[1])
+                        result = GameBoard.moveRight(take_action[1], True)
                     if result[0] != False:
                         playerMoved = True
                     take_action = []
@@ -88,10 +89,10 @@ while running:
                 if result[0] != False:
                     playerMoved = True
                 take_action = []
-
+         
+        
         # Computer turn
         if playerMoved:
-            pygame.display.update()
             playerMoved = False
             take_action = []
             
@@ -120,13 +121,13 @@ while running:
             
             # Implement the selected action
             if action == "moveUp":
-                GameBoard.moveUp(move_coord)
+                GameBoard.moveUp(move_coord, True)
             elif action == "moveDown":
-                GameBoard.moveDown(move_coord)
+                GameBoard.moveDown(move_coord, True)
             elif action == "moveLeft":
-                GameBoard.moveLeft(move_coord)
+                GameBoard.moveLeft(move_coord, True)
             elif action == "moveRight":
-                GameBoard.moveRight(move_coord)
+                GameBoard.moveRight(move_coord, True)
             elif action == "bite":
                 GameBoard.bite(move_coord)
             elif action == "heal":
@@ -135,9 +136,9 @@ while running:
         # Update the display
         pygame.display.update()
         
+    """
     else:
         pass
-        """
         if epochs_ran % 100 == 0:
             print("Board Reset!")
             GameBoard = Original_Board  # reset environment
