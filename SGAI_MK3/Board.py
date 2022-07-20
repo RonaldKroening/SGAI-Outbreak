@@ -6,17 +6,17 @@ from typing import Tuple
 
 
 class Board:
-    def __init__(self, dimensions, border, cell_dimensions, pr):
+    def __init__(self, dimensions, offset, cellsize, role):
         self.rows = dimensions[0]
         self.columns = dimensions[1]
-        self.display_border = border
-        self.display_cell_dimensions = cell_dimensions
-        self.Player_Role = pr
+        self.offset = offset
+        self.cellsize = cellsize
+        self.Player_Role = role
         self.population = 0
         self.States = []
         self.QTable = []
+        self.People = []
         for s in range(dimensions[0] * dimensions[1]):
-            self.States.append(State(None, s))
             self.QTable.append([0] * 6)
 
     def num_zombies(self):
@@ -56,7 +56,8 @@ class Board:
         is valid and which people/zombies it applies to
         """
         poss = []
-        B = self.clone(self.States)
+        B = self.clone()
+
 
         if role == "Zombie":
             for idx in range(len(self.States)):
@@ -64,10 +65,9 @@ class Board:
                 state = self.States[idx]
                 if state.person is not None:
                     if action == "bite":
-                        # if the current space isn't a zombie and it is adjacent a space that is a zombie
-                        if not state.person.isZombie and self.isAdjacentTo(
-                            self.toCoord(idx), True
-                        ):
+                        # if the current space isn't a zombie and it is adjacent
+                        # a space that is a zombie
+                        if not state.person.isZombie and self.isAdjacentTo(self.toCoord(idx), True):
                             poss.append(B.toCoord(state.location))
                     else:
                         if state.person.isZombie:
@@ -104,6 +104,7 @@ class Board:
                             elif action == "moveRight":
                                 if B.moveRight(B.toCoord(state.location)):
                                     poss.append(B.toCoord(state.location))
+        del B
         return poss
 
     def toCoord(self, i):
@@ -117,12 +118,12 @@ class Board:
             coordinates[1] < self.rows
             and coordinates[1] >= 0
             and coordinates[0] < self.columns
-            and coordinates[0] >= 0
-        )
+            and coordinates[0] >= 0)
 
-    def clone(self, L: list):
-        NB = Board((self.rows, self.columns), self.display_border, self.display_cell_dimensions, self.Player_Role)
-        NB.States = L.copy()
+    def clone(self):
+        NB = Board((self.rows, self.columns), self.offset, self.cellsize, self.Player_Role)
+        NB.States = self.People.copy()
+        NB.Player_Role = self.Player_Role
         return NB
 
     def isAdjacentTo(self, coord, is_zombie: bool) -> bool:
@@ -252,9 +253,8 @@ class Board:
             chance = 50
         r = rd.randint(0, 100)
         if r < chance:
-            newP = p.clone()
-            newP.isZombie = True
-            self.States[i].person = newP
+            p.isZombie = True
+            self.States[i].person = p
         return [True, i]
 
     def heal(self, coords):
@@ -267,14 +267,13 @@ class Board:
         if self.States[i].person is None:
             return [False, None]
         p = self.States[i].person
-        newP = p.clone()
-        newP.isZombie = False
-        if newP.wasCured == False:
-            newP.wasCured = True
-        if newP.isVaccinated == False:
-            newP.isVaccinated = True
-            newP.turnsVaccinated = 1
-        self.States[i].person = newP
+        p.isZombie = False
+        if p.wasCured == False:
+            p.wasCured = True
+        if p.isVaccinated == False:
+            p.isVaccinated = True
+            p.turnsVaccinated = 1
+        self.States[i].person = p
         return [True, i]
 
     def get_possible_states(self, rn):
@@ -314,21 +313,31 @@ class Board:
         # QTable[state][acti] = new_value
 
     def populate(self):
-        total = rd.randint(7, ((self.rows * self.columns) / 3))
-        poss = []
-        for x in range(len(self.States)):
-            r = rd.randint(0, 100)
-            if r < 60 and self.population < total:
-                p = Person(False)
-                self.States[x].person = p
-                self.population = self.population + 1
-                poss.append(x)
-            else:
-                self.States[x].person = None
-        used = []
-        for x in range(4):
+        targetpopulation = rd.randint(7, int((self.rows * self.columns) / 3))
+        # using a set for placing people as then duplicates will automatically be deleted.
+        poss = set()
+        while len(poss) < targetpopulation:
+            selected = rd.randint(0, int(self.rows * self.columns))
+            newperson = Person("Human", selected)
+            self.People.append(newperson)
+            poss.add(selected)
+            
+        self.population = len(poss)
+        print("people at ", poss)
+        used = set()
+        # Four is a arbitrary number that just specified starting amount of zombies
+        while len(used) < 4:
             s = rd.randint(0, len(poss) - 1)
-            while s in used:
-                s = rd.randint(0, len(poss) - 1)
-            self.States[poss[s]].person.isZombie = True
-            used.append(s)
+            used.add(s)
+        for i in used:
+            self.People[i].isZombie = True
+            self.People[i].id = "Zombie"
+
+    def is_person(self, index):
+        # This function loops through all the people and sees if any of them are on the square it seems bad.
+        # But, it is a improvement over looping across all tiles if you have a quicker way fix this!
+        for people in self.People:
+            if people.location == index:
+                return people
+        return False
+        

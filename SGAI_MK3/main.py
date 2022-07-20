@@ -4,20 +4,22 @@ import PygameFunctions as PF
 import random as rd
 
 # Constants
+SELF_PLAY = False
 ROWS = 6
 COLUMNS = 6
-BORDER = 150                    # Number of pixels to offset grid to the top-left side
-CELL_DIMENSIONS = (100,100)     # Number of pixels (x,y) for each cell
+BOARD_DIM = (6, 6)
+#BORDER = 150                    # Number of pixels to offset grid to the top-left side
+#CELL_DIMENSIONS = (100,100)     # Number of pixels (x,y) for each cell
 ACTION_SPACE = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
-SELF_PLAY = False
 
 # Player role variables
 player_role = "Government"      # Valid options are "Government" and "Zombie"
 roleToRoleNum = {"Government": 1, "Zombie": -1}
 roleToRoleBoolean = {"Government": False, "Zombie": True}
 
-#Create the game board
-GameBoard = Board((ROWS,COLUMNS), BORDER, CELL_DIMENSIONS, roleToRoleNum[player_role])
+# Create the game board
+GameBoard = Board((ROWS, COLUMNS), PF.grid_start, PF.cell_dimensions, role)
+#GameBoard = Board((ROWS,COLUMNS), BORDER, CELL_DIMENSIONS, roleToRoleNum[player_role])
 GameBoard.populate()
 
 # Self play variables
@@ -26,24 +28,22 @@ gamma = 0.6
 epsilon = 0.1
 epochs = 1000
 epochs_ran = 0
-Original_Board = GameBoard.clone(GameBoard.States)
-
+Original_Board = GameBoard.clone()
 
 # Initialize variables
 running = True
 take_action = []
 playerMoved = False
+
+pygame.init()
 font = pygame.font.SysFont("Comic Sans", 20)
 
-
-
 while running:
-    P = PF.run(GameBoard)
+    P = PF.run(GameBoard, BOARD_DIM)
 
     if SELF_PLAY:
-        
         # Event Handling
-        for event in P:
+        for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP:
                 x, y = pygame.mouse.get_pos()
                 action = PF.get_action(GameBoard, x, y)
@@ -141,7 +141,7 @@ while running:
         if epochs_ran % 100 == 0:
             print("Board Reset!")
             GameBoard = Original_Board  # reset environment
-        for event in P:
+        for event in pygame.event.get():
             i = 0
             r = rd.uniform(0.0, 1.0)
             st = rd.randint(0, len(GameBoard.States) - 1)

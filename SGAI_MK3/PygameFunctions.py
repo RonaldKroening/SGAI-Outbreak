@@ -22,7 +22,6 @@ person_dimensions = (20, 60)
 pygame.display.set_caption("Outbreak!")
 screen.fill(BACKGROUND)
 
-
 def get_action(GameBoard, pixel_x, pixel_y):
     """
     Get the action that the click represents.
@@ -31,7 +30,6 @@ def get_action(GameBoard, pixel_x, pixel_y):
     Return None otherwise
     """
     # Check if the user clicked on the "heal" icon, return "heal" if so
-    heal_check = pixel_x >= 900 and pixel_x <= 1100 and pixel_y > 199 and pixel_y < 301
     if heal_check:
         return "heal"
     else:
@@ -44,15 +42,14 @@ def get_action(GameBoard, pixel_x, pixel_y):
                 return (board_x, board_y)
     return None
 
-def run(GameBoard):
+def run(GameBoard, bd):
     """
     Draw the screen and return any events.
     """
     screen.fill(BACKGROUND)
     build_grid(GameBoard) # Draw the grid
     display_image(screen, "Assets/cure.jpeg", GameBoard.display_cell_dimensions, (950, 200)) # Draw the heal icon
-    display_people(GameBoard)
-    return pygame.event.get()
+    display_people(GameBoard.People, bd)
 
 def display_image(screen, itemStr, dimensions, position):
     """
@@ -61,7 +58,7 @@ def display_image(screen, itemStr, dimensions, position):
     v = pygame.image.load(itemStr).convert_alpha()
     v = pygame.transform.scale(v, dimensions)
     screen.blit(v, position)
-
+    
 def build_grid(GameBoard):
     """
     Draw the grid on the screen.
@@ -84,23 +81,49 @@ def build_grid(GameBoard):
         pygame.draw.rect(screen, BLACK, [GameBoard.display_border, i, grid_width, LINE_WIDTH])
         i += GameBoard.display_cell_dimensions[1]
 
-def display_people(GameBoard):
-    """
-    Draw the people (government, vaccinated, and zombies) on the grid.
-    """
-    for x in range(len(GameBoard.States)):
-        if GameBoard.States[x].person != None:
-            p = GameBoard.States[x].person
+def display_people(PersonList, board_dimensions):
+    for Person in PersonList:
+        if Person.id == "Human":
             char = "Assets/" + image_assets[0]
-            if p.isVaccinated:
-                char = "Assets/" + image_assets[1]
-            elif p.isZombie:
-                char = "Assets/" + image_assets[2]
-            coords = (
-                int(x % GameBoard.rows) * GameBoard.display_cell_dimensions[0] + GameBoard.display_border + 35,
-                int(x / GameBoard.columns) * GameBoard.display_cell_dimensions[1] + GameBoard.display_border + 20,
+        elif Person.id == "Cured":
+            char = "Assets/" + image_assets[1]
+        else: # only zombies right now
+            char = "Assets/" + image_assets[2]
+        coords = (
+            int(Person.location % board_dimensions[0]) * cell_dimensions[0] + grid_start[0] + 25,
+            int(Person.location / board_dimensions[0]) * cell_dimensions[1] + grid_start[1] + 20,
             )
-            display_image(screen, char, (35, 60), coords)
+        display_image(screen, char, (35, 60), coords)
+
+def display_board(screen, Board):
+    screen.fill(BACKGROUND)
+    dif = cell_dimensions[0] / 3
+    ydif = cell_dimensions[1] / 4
+    margin = 5
+    i = 0
+    for State in Board.States:
+        person = State.person
+        if person is not None:
+            icon = "Assets/" + image_assets[0]
+            if person.isZombie:
+                icon = "Assets/" + image_assets[2]
+            elif person.isVaccinated:
+                icon = "Assets/" + image_assets[1]
+            position = Board.toCoord(i)
+            x_start = (
+                (position[0] * cell_dimensions[0])
+                + grid_start[0]
+                + (cell_dimensions[0] / 3)
+            )
+            y_pos = (
+                (position[1] * cell_dimensions[1])
+                + grid_start[1]
+                + (cell_dimensions[1] / 4)
+            )
+            display_image(screen, icon, (35, 60), (x_start, y_pos))
+        i += 1
+    build_grid(screen, 5, cell_dimensions[0], 150)
+    pygame.display.update()
 
 def display_win_screen():
     screen.fill(BACKGROUND)
