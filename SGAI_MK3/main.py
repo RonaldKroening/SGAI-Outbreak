@@ -7,9 +7,8 @@ import random as rd
 SELF_PLAY = False
 ROWS = 6
 COLUMNS = 6
-BOARD_DIM = (6, 6)
-#BORDER = 150                    # Number of pixels to offset grid to the top-left side
-#CELL_DIMENSIONS = (100,100)     # Number of pixels (x,y) for each cell
+OFFSET = 150                    # Number of pixels to offset grid to the top-left side
+CELL_DIMENSIONS = 100           # Number of pixels for each cell
 ACTION_SPACE = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
 
 # Player role variables
@@ -18,8 +17,7 @@ roleToRoleNum = {"Government": 1, "Zombie": -1}
 roleToRoleBoolean = {"Government": False, "Zombie": True}
 
 # Create the game board
-GameBoard = Board((ROWS, COLUMNS), PF.grid_start, PF.cell_dimensions, role)
-#GameBoard = Board((ROWS,COLUMNS), BORDER, CELL_DIMENSIONS, roleToRoleNum[player_role])
+GameBoard = Board((ROWS,COLUMNS), OFFSET, CELL_DIMENSIONS, roleToRoleNum[player_role])
 GameBoard.populate()
 
 # Self play variables
@@ -39,7 +37,7 @@ pygame.init()
 font = pygame.font.SysFont("Comic Sans", 20)
 
 while running:
-    P = PF.run(GameBoard, BOARD_DIM)
+    P = PF.run(GameBoard, (ROWS, COLUMNS))
 
     if SELF_PLAY:
         # Event Handling

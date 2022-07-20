@@ -34,9 +34,9 @@ def get_action(GameBoard, pixel_x, pixel_y):
         return "heal"
     else:
         # Get the grid (x,y) where the user clicked
-        if pixel_x > GameBoard.display_border and pixel_y > GameBoard.display_border:   # Clicking to the top or left of the border will result in a grid value of 0, which is valid
-            board_x = int((pixel_x - GameBoard.display_border) / GameBoard.display_cell_dimensions[0])
-            board_y = int((pixel_y - GameBoard.display_border) / GameBoard.display_cell_dimensions[1])
+        if pixel_x > GameBoard.offset and pixel_y > GameBoard.offset:   # Clicking to the top or left of the border will result in a grid value of 0, which is valid
+            board_x = int((pixel_x - GameBoard.offset) / GameBoard.cellsize)
+            board_y = int((pixel_y - GameBoard.offset) / GameBoard.cellsize)
             # Return the grid position if it is a valid position on the board
             if (board_x >= 0 and board_x < GameBoard.columns and board_y >= 0 and board_y < GameBoard.rows):
                 return (board_x, board_y)
@@ -48,8 +48,8 @@ def run(GameBoard, bd):
     """
     screen.fill(BACKGROUND)
     build_grid(GameBoard) # Draw the grid
-    display_image(screen, "Assets/cure.jpeg", GameBoard.display_cell_dimensions, (950, 200)) # Draw the heal icon
-    display_people(GameBoard.People, bd)
+    display_image(screen, "Assets/cure.jpeg", (GameBoard.cellsize, GameBoard.cellsize), (950, 200)) # Draw the heal icon
+    display_people(GameBoard)
 
 def display_image(screen, itemStr, dimensions, position):
     """
@@ -63,26 +63,26 @@ def build_grid(GameBoard):
     """
     Draw the grid on the screen.
     """
-    grid_width = GameBoard.columns * GameBoard.display_cell_dimensions[0]
-    grid_height = GameBoard.rows * GameBoard.display_cell_dimensions[1]
-    pygame.draw.rect(screen, BLACK, [GameBoard.display_border - LINE_WIDTH, GameBoard.display_border - LINE_WIDTH, LINE_WIDTH, grid_height + (2 * LINE_WIDTH)])  # left
-    pygame.draw.rect(screen, BLACK, [GameBoard.display_border + grid_width, GameBoard.display_border - LINE_WIDTH, LINE_WIDTH, grid_height + (2 * LINE_WIDTH)])  # right
-    pygame.draw.rect(screen, BLACK, [GameBoard.display_border - LINE_WIDTH, GameBoard.display_border + grid_height, grid_width + (2 * LINE_WIDTH), LINE_WIDTH])  # bottom
-    pygame.draw.rect(screen, BLACK, [GameBoard.display_border - LINE_WIDTH, GameBoard.display_border - LINE_WIDTH, grid_width + (2 * LINE_WIDTH), LINE_WIDTH])   # top
-    pygame.draw.rect(screen, CELL_COLOR, [GameBoard.display_border, GameBoard.display_border, grid_width, grid_height]) # Fill the inside wioth the cell color
+    grid_width = GameBoard.columns * GameBoard.cellsize
+    grid_height = GameBoard.rows * GameBoard.cellsize
+    pygame.draw.rect(screen, BLACK, [GameBoard.offset - LINE_WIDTH, GameBoard.offset - LINE_WIDTH, LINE_WIDTH, grid_height + (2 * LINE_WIDTH)])  # left
+    pygame.draw.rect(screen, BLACK, [GameBoard.offset + grid_width, GameBoard.offset - LINE_WIDTH, LINE_WIDTH, grid_height + (2 * LINE_WIDTH)])  # right
+    pygame.draw.rect(screen, BLACK, [GameBoard.offset - LINE_WIDTH, GameBoard.offset + grid_height, grid_width + (2 * LINE_WIDTH), LINE_WIDTH])  # bottom
+    pygame.draw.rect(screen, BLACK, [GameBoard.offset - LINE_WIDTH, GameBoard.offset - LINE_WIDTH, grid_width + (2 * LINE_WIDTH), LINE_WIDTH])   # top
+    pygame.draw.rect(screen, CELL_COLOR, [GameBoard.offset, GameBoard.offset, grid_width, grid_height]) # Fill the inside wioth the cell color
     # Draw the vertical lines
-    i = GameBoard.display_border + GameBoard.display_cell_dimensions[0]
-    while i < GameBoard.display_border + grid_width:
-        pygame.draw.rect(screen, BLACK, [i, GameBoard.display_border, LINE_WIDTH, grid_height])
-        i += GameBoard.display_cell_dimensions[0]
+    i = GameBoard.offset + GameBoard.cellsize
+    while i < GameBoard.offset + grid_width:
+        pygame.draw.rect(screen, BLACK, [i, GameBoard.offset, LINE_WIDTH, grid_height])
+        i += GameBoard.cellsize
     # Draw the horizontal lines
-    i = GameBoard.display_border + GameBoard.display_cell_dimensions[1]
-    while i < GameBoard.display_border + grid_height:
-        pygame.draw.rect(screen, BLACK, [GameBoard.display_border, i, grid_width, LINE_WIDTH])
-        i += GameBoard.display_cell_dimensions[1]
+    i = GameBoard.offset + GameBoard.cellsize
+    while i < GameBoard.offset + grid_height:
+        pygame.draw.rect(screen, BLACK, [GameBoard.offset, i, grid_width, LINE_WIDTH])
+        i += GameBoard.cellsize
 
-def display_people(PersonList, board_dimensions):
-    for Person in PersonList:
+def display_people(GameBoard):
+    for Person in GameBoard.People:
         if Person.id == "Human":
             char = "Assets/" + image_assets[0]
         elif Person.id == "Cured":
@@ -90,8 +90,8 @@ def display_people(PersonList, board_dimensions):
         else: # only zombies right now
             char = "Assets/" + image_assets[2]
         coords = (
-            int(Person.location % board_dimensions[0]) * cell_dimensions[0] + grid_start[0] + 25,
-            int(Person.location / board_dimensions[0]) * cell_dimensions[1] + grid_start[1] + 20,
+            int(Person.location % GameBoard.rows) * GameBoard.cellsize + GameBoard.offset + 35,
+            int(Person.location / GameBoard.columns) * GameBoard.cellsize + GameBoard.offset + 20,
             )
         display_image(screen, char, (35, 60), coords)
 

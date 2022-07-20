@@ -323,7 +323,6 @@ class Board:
             poss.add(selected)
             
         self.population = len(poss)
-        print("people at ", poss)
         used = set()
         # Four is a arbitrary number that just specified starting amount of zombies
         while len(used) < 4:
