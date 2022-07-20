@@ -33,9 +33,6 @@ running = True
 take_action = []
 playerMoved = False
 
-pygame.init()
-font = pygame.font.SysFont("Comic Sans", 20)
-
 while running:
     PF.run(GameBoard)
 
@@ -61,11 +58,7 @@ while running:
                 running = False
         
         # Display the current action
-        PF.screen.blit(
-            font.render("Your move is currently:", True, PF.WHITE),
-            (800, 400),
-        )
-        PF.screen.blit(font.render(f"{take_action}", True, PF.WHITE), (800, 450))
+        PF.display_current_action(take_action)
 
         # Action handling
         if len(take_action) > 1:

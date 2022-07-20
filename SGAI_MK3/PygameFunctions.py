@@ -12,6 +12,7 @@ IMAGE_ASSETS = [
 ]
 
 # Initialize pygame
+pygame.init()
 screen = pygame.display.set_mode((1200, 800))
 pygame.display.set_caption("Outbreak!")
 pygame.font.init()
@@ -97,6 +98,14 @@ def display_people(GameBoard):
             int(person.location / GameBoard.columns) * GameBoard.cell_size + GameBoard.offset + 20,
             )
         display_image(screen, char, (35, 60), coords)
+
+def display_current_action(take_action):
+    font = pygame.font.SysFont("Comic Sans", 20)
+    screen.blit(
+        font.render("Your move is currently:", True, WHITE),
+        (800, 400),
+    )
+    screen.blit(font.render(f"{take_action}", True, WHITE), (800, 450))
 
 def display_win_screen():
     screen.fill(BACKGROUND)
