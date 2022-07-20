@@ -4,7 +4,7 @@ import PygameFunctions as PF
 import random as rd
 
 # Constants
-SELF_PLAY = False
+SELF_PLAY = True
 ROWS = 6
 COLUMNS = 6
 OFFSET = 150                    # Number of pixels to offset grid to the top-left side
