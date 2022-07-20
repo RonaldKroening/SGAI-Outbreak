@@ -18,6 +18,32 @@ pygame.display.set_caption("Outbreak!")
 pygame.font.init()
 screen.fill(BACKGROUND)
 
+# Load images
+img_player_healthy = None
+img_player_vaccinated = None
+img_player_infected = None
+img_vaccinate_icon = None
+
+def load_images(GameBoard):
+    """
+    Load all of the game image assets once
+    Only blit these on refresh, instead of loading them each time
+    TODO: find a way to implement this without using the global method here...
+    """
+    global img_player_healthy
+    global img_player_vaccinated
+    global img_player_infected
+    global img_vaccinate_icon
+    img_player_size = (0.8 * GameBoard.cell_size / 2, 0.8 * GameBoard.cell_size)
+    img_player_healthy = pygame.image.load("Assets/person_normal.png").convert_alpha()
+    img_player_healthy = pygame.transform.scale(img_player_healthy, img_player_size)
+    img_player_vaccinated = pygame.image.load("Assets/person_vax.png").convert_alpha()
+    img_player_vaccinated = pygame.transform.scale(img_player_vaccinated, img_player_size)
+    img_player_infected = pygame.image.load("Assets/person_infect.png").convert_alpha()
+    img_player_infected = pygame.transform.scale(img_player_infected, img_player_size)
+    img_vaccinate_icon = pygame.image.load("Assets/cure.jpeg").convert_alpha()
+    img_vaccinate_icon = pygame.transform.scale(img_vaccinate_icon, (100,100))
+
 def get_action(GameBoard, pixel_x, pixel_y):
     """
     Get the action that the click represents.
@@ -45,16 +71,8 @@ def run(GameBoard):
     """
     screen.fill(BACKGROUND)
     build_grid(GameBoard) # Draw the grid
-    display_image(screen, "Assets/cure.jpeg", (100, 100), (950, 200)) # Draw the heal icon
+    screen.blit(img_vaccinate_icon, (950, 200))
     display_people(GameBoard)
-
-def display_image(screen, itemStr, dimensions, position):
-    """
-    Draw an image on the screen at the indicated position.
-    """
-    v = pygame.image.load(itemStr).convert_alpha()
-    v = pygame.transform.scale(v, dimensions)
-    screen.blit(v, position)
     
 def build_grid(GameBoard):
     """
@@ -83,17 +101,16 @@ def display_people(GameBoard):
     Draw the people on the screen.
     """
     for person in GameBoard.people:
-        if person.condition == "Healthy":
-            char = "Assets/" + IMAGE_ASSETS[0]
-        elif person.condition == "Cured":
-            char = "Assets/" + IMAGE_ASSETS[1]
-        else: # only infected people right now
-            char = "Assets/" + IMAGE_ASSETS[2]
         coords = (
             int(person.location % GameBoard.rows) * GameBoard.cell_size + GameBoard.offset + 0.3 * GameBoard.cell_size,
             int(person.location / GameBoard.columns) * GameBoard.cell_size + GameBoard.offset + 0.1 * GameBoard.cell_size,
-            )
-        display_image(screen, char, (0.8 * GameBoard.cell_size / 2, 0.8 * GameBoard.cell_size), coords)
+        )
+        if person.condition == "Healthy":
+            screen.blit(img_player_healthy, coords)
+        elif person.condition == "Cured":
+            screen.blit(img_player_vaccinated, coords)
+        else: # only infected people right now
+            screen.blit(img_player_infected, coords)
 
 def display_current_action(take_action):
     font = pygame.font.SysFont("Comic Sans", 20)
