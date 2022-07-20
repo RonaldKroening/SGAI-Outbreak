@@ -6,13 +6,11 @@ from typing import Tuple
 
 
 class Board:
-    States = []
+    People = []
     QTable = []
-    rows = 0
-    columns = 0
     population = 0
-    Player_Role = 0
     action_space = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
+    
 
     def __init__(self, dimensions, offset, cellsize, role):
         self.rows = dimensions[0]
@@ -21,7 +19,6 @@ class Board:
         self.cellsize = cellsize
         self.Player_Role = role
         for s in range(dimensions[0] * dimensions[1]):
-            self.States.append(State(None, s))
             self.QTable.append([0] * 6)
 
     def num_zombies(self):
@@ -129,7 +126,7 @@ class Board:
 
     def clone(self):
         NB = Board((self.rows, self.columns), self.offset, self.cellsize, self.Player_Role)
-        NB.States = self.States.copy()
+        NB.States = self.People.copy()
         NB.Player_Role = self.Player_Role
         return NB
 
@@ -319,22 +316,32 @@ class Board:
         # QTable[state][acti] = new_value
 
     def populate(self):
-        total = rd.randint(7, ((self.rows * self.columns) / 3))
-        poss = []
-        for x in range(len(self.States)):
-            r = rd.randint(0, 100)
-            if r < 60 and self.population < total:
-                p = Person(False)
-                self.States[x].person = p
-                self.population = self.population + 1
-                poss.append(x)
-            else:
-                self.States[x].person = None
+
+        targetpopulation = rd.randint(7, int((self.rows * self.columns) / 3))
+        # using a set for placing people as then duplicates will automatically be deleted.
+        poss = set()
+        while len(poss) < targetpopulation:
+            selected = rd.randint(0, int(self.rows * self.columns))
+            newperson = Person("Human", selected)
+            self.People.append(newperson)
+            poss.add(selected)
+            
+        self.population = len(poss)
         print("people at ", poss)
-        used = []
-        for x in range(4):
+        used = set()
+        # Four is a arbitrary number that just specified starting amount of zombies
+        while len(used) < 4:
             s = rd.randint(0, len(poss) - 1)
-            while s in used:
-                s = rd.randint(0, len(poss) - 1)
-            self.States[poss[s]].person.isZombie = True
-            used.append(s)
+            used.add(s)
+        for i in used:
+            self.People[i].isZombie = True
+            self.People[i].id = "Zombie"
+
+    def is_person(self, index):
+        # This function loops through all the people and sees if any of them are on the square it seems bad.
+        # But, it is a improvement over looping across all tiles if you have a quicker way fix this!
+        for people in self.People:
+            if people.location == index:
+                return people
+        return False
+        

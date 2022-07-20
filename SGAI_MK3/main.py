@@ -4,16 +4,16 @@ import PygameFunctions as PF
 import random as rd
 
 
-rows = 6
-columns = 6
-bd = (rows, columns)
+ROWS = 6
+COLUMNS = 6
+BOARD_DIM = (6, 6)
 
 role = "Government"  # valid options are "Government" and "Zombie"
 rn = 1
 if role == "Zombie":
     rn = -1
 roleToIsZombieMappings = {"Government": False, "Zombie": True}
-GameBoard = Board(bd, rn)
+GameBoard = Board((ROWS, COLUMNS), PF.grid_start, PF.cell_dimensions, role)
 GameBoard.populate()
 print("Board Population: ", GameBoard.population)
 action_space = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
@@ -27,41 +27,43 @@ r = rd.uniform(0.0, 1.0)
 
 take_action = []
 
-self_play = True  # Change to false
+self_play = True  # True if you want to play False for errors
 playerMoved = False
 
 pygame.init()
 epochs = 1000
 epochs_ran = 0
-Original_Board = GameBoard.clone(GameBoard.States, GameBoard.Player_Role)
+Original_Board = GameBoard.clone()
 font = pygame.font.SysFont("Comic Sans", 20)
 while running:
-    P = PF.run(GameBoard, bd)
+    P = PF.run(GameBoard, BOARD_DIM)
 
     if self_play:
         # get events
-        for event in P:
+        for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP:
                 x, y = pygame.mouse.get_pos()
                 action = PF.get_action(GameBoard, x, y)
-                if action == "heal":
+                if action == None:
+                    pass
+                elif action == "heal":
                     if "heal" not in take_action:
                         take_action.append("heal")
                 else:
                     idx = GameBoard.toIndex(action)
                     # action is a coordinate
-                    if idx < (rows * columns) and idx > -1:
-                        if "move" not in take_action and len(take_action) == 0:
-                            # make sure that the space is not an empty space or a space of the opposite team
-                            # since cannot start a move from those invalid spaces
-                            if (
-                                GameBoard.States[idx].person is not None
-                                and GameBoard.States[idx].person.isZombie
-                                == roleToIsZombieMappings[role]
-                            ):
-                                take_action.append("move")
-                            else:
-                                continue
+                    if "move" not in take_action and len(take_action) == 0:
+                        # make sure that the space is not an empty space or a space of the opposite team
+                        # since cannot start a move from those invalid spaces
+                        selected = GameBoard.is_person(idx)
+                        if (
+                            selected != False
+                            and selected.isZombie
+                            == roleToIsZombieMappings[role]
+                        ):
+                            take_action.append("move")
+                        else:
+                            continue
 
                         # don't allow duplicate cells
                         if action not in take_action:
@@ -167,7 +169,7 @@ while running:
         if epochs_ran % 100 == 0:
             print("Board Reset!")
             GameBoard = Original_Board  # reset environment
-        for event in P:
+        for event in pygame.event.get():
             i = 0
             r = rd.uniform(0.0, 1.0)
             st = rd.randint(0, len(GameBoard.States))

@@ -16,9 +16,8 @@ class State:
         second_coord = self.toCoord(other_id)
         a = second_coord[0] - first_coord[0]
         b = second_coord[1] - first_coord[1]
-        a = a * a
-        b = b * a
-        return math.pow(int(a + b), 0.5)
+        
+        return math.pow(int(a**2 + b**2), 0.5)
 
     def nearest_zombie(self, B):
         smallest_dist = 100
@@ -70,7 +69,5 @@ class State:
         return moves
 
     def clone(self):
-        if self.person is None:
-            return State(self.person, self.location)
         return State(self.person, self.location)
 

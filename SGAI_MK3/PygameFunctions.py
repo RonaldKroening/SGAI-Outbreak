@@ -15,13 +15,11 @@ screen = pygame.display.set_mode((1200, 800))
 pygame.display.set_caption("Outbreak!")
 pygame.font.init()
 my_font = pygame.font.SysFont("Impact", 30)
-cell_dimensions = (100, 100)
 game_window_dimensions = (1400, 800)
 person_dimensions = (20, 60)
-grid_start = (150, 150)
 pygame.display.set_caption("Outbreak!")
 # screen = pygame.display.set_mode(game_window_dimensions)
-screen.fill("#DDC2A1")
+screen.fill(BACKGROUND)
 
 
 def get_action(B, pixel_x, pixel_y):
@@ -30,33 +28,30 @@ def get_action(B, pixel_x, pixel_y):
     If the click was on the heal button, returns "heal"
     Else, returns the board coordinates of the click (board_x, board_y)
     """
+
     heal_check = pixel_x >= 900 and pixel_x <= 1100 and pixel_y > 199 and pixel_y < 301
-    board_x = int((pixel_x - 150) / 100)
-    board_y = int((pixel_y - 150) / 100)
-    move_check = (
-        board_x >= 0 and board_x < B.columns and board_y >= 0 and board_y < B.rows
-    )
-    board_coords = (int((pixel_x - 150) / 100), int((pixel_y - 150) / 100))
+    board_coords = (int((pixel_x - grid_start[0]) / cell_dimensions[0]),
+                    int((pixel_y - grid_start[1]) / cell_dimensions[1]))
+        
     if heal_check:
         return "heal"
-    else:
+    elif B.rows > board_coords[0] > -1 and -1 < board_coords[1] < B.columns:
         return board_coords
 
 
-def display_people(StateList, board_dimensions):
-    for x in range(len(StateList)):
-        if StateList[x].person != None:
-            p = StateList[x].person
+def display_people(PersonList, board_dimensions):
+    for Person in PersonList:
+        if Person.id == "Human":
             char = "Assets/" + image_assets[0]
-            if p.isVaccinated:
-                char = "Assets/" + image_assets[1]
-            elif p.isZombie:
-                char = "Assets/" + image_assets[2]
-            coords = (
-                int(x % board_dimensions[0]) * 100 + 185,
-                int(x / board_dimensions[1]) * 100 + 170,
+        elif Person.id == "Cured":
+            char = "Assets/" + image_assets[1]
+        else: # only zombies right now
+            char = "Assets/" + image_assets[2]
+        coords = (
+            int(Person.location % board_dimensions[0]) * cell_dimensions[0] + grid_start[0] + 25,
+            int(Person.location / board_dimensions[0]) * cell_dimensions[1] + grid_start[1] + 20,
             )
-            display_image(screen, char, (35, 60), coords)
+        display_image(screen, char, (35, 60), coords)
 
 
 def run(GameBoard, bd):
@@ -64,7 +59,7 @@ def run(GameBoard, bd):
     build_grid(screen, 5, 100, 150)
     display_image(screen, "Assets/cure.jpeg", cell_dimensions, (950, 200))
     # pygame.display.flip()
-    display_people(GameBoard.States, bd)
+    display_people(GameBoard.People, bd)
     pass
 
 
