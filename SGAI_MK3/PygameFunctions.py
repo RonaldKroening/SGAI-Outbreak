@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import List, Tuple
 import pygame
 from constants import *
 from Board import Board
@@ -8,7 +8,7 @@ from Board import Board
 screen = pygame.display.set_mode(GAME_WINDOW_DIMENSIONS)
 pygame.display.set_caption("Outbreak!")
 pygame.font.init()
-font = pygame.font.SysFont("Impact", 30)
+font = pygame.font.SysFont("Comic Sans", 20)
 screen.fill(BACKGROUND)
 
 
@@ -179,6 +179,21 @@ def display_people(GameBoard: Board):
                 int(x / GameBoard.columns) * CELL_DIMENSIONS[1] + MARGIN + 20,
             )
             display_image(screen, char, (35, 60), coords)
+
+
+def display_cur_move(cur_move: List):
+    # Display the current action
+    screen.blit(
+        font.render("Your move is currently:", True, WHITE),
+        CUR_MOVE_COORDS,
+    )
+    screen.blit(
+        font.render(f"{cur_move}", True, WHITE),
+        (
+            CUR_MOVE_COORDS[0],
+            CUR_MOVE_COORDS[1] + font.size("Your move is currently:")[1] * 2,
+        ),
+    )
 
 
 def display_win_screen():

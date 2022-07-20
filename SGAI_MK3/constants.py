@@ -24,4 +24,5 @@ RESET_MOVE_DIMS = (200, 50)
 CURE_BITE_COORDS = (950, 200)
 CURE_BITE_DIMS = (200, 200)
 CELL_DIMENSIONS = (100, 100)  # number of pixels (x, y) for each cell
+CUR_MOVE_COORDS = (800, 400)
 MARGIN = 150  # Number of pixels to offset grid to the top-left side
