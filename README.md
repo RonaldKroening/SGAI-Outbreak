@@ -18,7 +18,8 @@ There are basic moves:
 - Move - click on a person that you control and a square next to them.
 If the square isn't occupied, the person will move to that square.
 - Bite - If you are playing as a zombie,
-you can click a person next to you to turn them into a zombie (NYI)
+you can click the bite button and then a person next to a zombie
+to turn the person into a zombie
 - Heal - If you are playing as the government, you 
 can click the cure button and a person or zombie.
 If you clicked a zombie, the zombie will become a person again 
