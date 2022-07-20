@@ -4,7 +4,7 @@ BACKGROUND = "#DDC2A1"
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 CELL_COLOR = (233, 222, 188)
-LINE_WIDTH = 5
+LINE_WIDTH = 1
 IMAGE_ASSETS = [
     "person_normal.png",
     "person_vax.png",
@@ -49,7 +49,7 @@ def run(GameBoard):
     """
     screen.fill(BACKGROUND)
     build_grid(GameBoard) # Draw the grid
-    display_image(screen, "Assets/cure.jpeg", (GameBoard.cell_size, GameBoard.cell_size), (950, 200)) # Draw the heal icon
+    display_image(screen, "Assets/cure.jpeg", (100, 100), (950, 200)) # Draw the heal icon
     display_people(GameBoard)
 
 def display_image(screen, itemStr, dimensions, position):
@@ -94,10 +94,10 @@ def display_people(GameBoard):
         else: # only infected people right now
             char = "Assets/" + IMAGE_ASSETS[2]
         coords = (
-            int(person.location % GameBoard.rows) * GameBoard.cell_size + GameBoard.offset + 35,
-            int(person.location / GameBoard.columns) * GameBoard.cell_size + GameBoard.offset + 20,
+            int(person.location % GameBoard.rows) * GameBoard.cell_size + GameBoard.offset + 0.3 * GameBoard.cell_size,
+            int(person.location / GameBoard.columns) * GameBoard.cell_size + GameBoard.offset + 0.1 * GameBoard.cell_size,
             )
-        display_image(screen, char, (35, 60), coords)
+        display_image(screen, char, (0.8 * GameBoard.cell_size / 2, 0.8 * GameBoard.cell_size), coords)
 
 def display_current_action(take_action):
     font = pygame.font.SysFont("Comic Sans", 20)
@@ -105,7 +105,7 @@ def display_current_action(take_action):
         font.render("Your move is currently:", True, WHITE),
         (800, 400),
     )
-    screen.blit(font.render(f"{take_action}", True, WHITE), (800, 450))
+    screen.blit(font.render(f"{take_action}", True, WHITE), (800, 430))
 
 def display_win_screen():
     screen.fill(BACKGROUND)
