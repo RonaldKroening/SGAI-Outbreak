@@ -167,3 +167,5 @@ def direction(coord1, coord2):
         return "moveRight"
     elif coord2[0] < coord1[0]:
         return "moveLeft"
+    elif coord1[0] == coord2[0] and coord2[1] == coord1[1]:
+        return "same"

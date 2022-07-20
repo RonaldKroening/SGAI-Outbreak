@@ -2,7 +2,7 @@ from tracemalloc import start
 from State import State
 import random as rd
 from Person import Person
-from typing import Tuple
+
 
 
 class Board:
@@ -21,6 +21,7 @@ class Board:
         for s in range(dimensions[0] * dimensions[1]):
             self.States.append(State(None, s))
             self.QTable.append([0] * 6)
+        self.populate()
 
     def num_zombies(self):
         r = 0
@@ -151,7 +152,7 @@ class Board:
 
         return ret
 
-    def move(self, from_coords, new_coords) -> Tuple[bool, int]:
+    def move(self, from_coords, new_coords):
         start_idx = self.toIndex(from_coords)
 
         # idk why this line is here, but I kept it from the original code just in case
@@ -173,22 +174,22 @@ class Board:
         except:
             return [False, destination_idx]
 
-    def moveUp(self, coords) -> Tuple[bool, int]:
+    def moveUp(self, coords):
         new_coords = (coords[0], coords[1] - 1)
         print(f"going from {coords} to new coords {new_coords}")
         return self.move(coords, new_coords)
 
-    def moveDown(self, coords) -> Tuple[bool, int]:
+    def moveDown(self, coords):
         new_coords = (coords[0], coords[1] + 1)
         print(f"going from {coords} to new coords {new_coords}")
         return self.move(coords, new_coords)
 
-    def moveLeft(self, coords) -> Tuple[bool, int]:
+    def moveLeft(self, coords):
         new_coords = (coords[0] - 1, coords[1])
         print(f"going from {coords} to new coords {new_coords}")
         return self.move(coords, new_coords)
 
-    def moveRight(self, coords) -> Tuple[bool, int]:
+    def moveRight(self, coords):
         new_coords = (coords[0] + 1, coords[1])
         print(f"going from {coords} to new coords {new_coords}")
         return self.move(coords, new_coords)
@@ -322,20 +323,18 @@ class Board:
     def populate(self):
         total = rd.randint(7, ((self.rows * self.columns) / 3))
         poss = []
-        for x in range(len(self.States)):
-            r = rd.randint(0, 100)
-            if r < 60 and self.population < total:
-                p = Person(False)
-                self.States[x].person = p
-                self.population = self.population + 1
-                poss.append(x)
-            else:
-                self.States[x].person = None
-        print("people at ", poss)
+        for x in range(self.rows * self.columns):
+            self.States[x] = State(None, x)
         used = []
-        for x in range(4):
-            s = rd.randint(0, len(poss) - 1)
-            while s in used:
-                s = rd.randint(0, len(poss) - 1)
-            self.States[poss[s]].person.isZombie = True
-            used.append(s)
+        for x in range(total):
+            r = rd.randint(0, (self.rows * self.columns)-1)
+            while r in used:
+                r = rd.randint(0, (self.rows * self.columns)-1)
+            self.States[r].person = Person(False)
+            used.append(r)
+            poss.append(r)
+        self.population = len(poss)
+        for x in range(int(len(poss) / 4) + 1):
+            idx = poss[x]
+            self.States[idx].person.isZombie = True
+        

@@ -37,7 +37,6 @@ Original_Board = GameBoard.clone(GameBoard.States, GameBoard.Player_Role)
 font = pygame.font.SysFont("Comic Sans", 20)
 while running:
     P = PF.run(GameBoard, bd)
-
     if self_play:
         # get events
         for event in P:
@@ -80,6 +79,7 @@ while running:
         if len(take_action) > 1:
             if take_action[0] == "move":
                 if len(take_action) > 2:
+                    print(take_action)
                     directionToMove = PF.direction(take_action[1], take_action[2])
                     g = False
                     if directionToMove == "moveUp":
@@ -94,6 +94,8 @@ while running:
                     elif directionToMove == "moveRight":
                         print("goin to ", directionToMove)
                         g = GameBoard.moveRight(take_action[1])
+                    elif directionToMove == "same":
+                        take_action = [] # cancel move
                     print(f"did it succeed? {g[0]}")
                     playerMoved = True
                     take_action = []
