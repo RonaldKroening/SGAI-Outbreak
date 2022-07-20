@@ -5,10 +5,10 @@ import random as rd
 
 # Constants
 SELF_PLAY = False
-ROWS = 20
-COLUMNS = 20
+ROWS = 30
+COLUMNS = 30
 OFFSET = 50                    # Number of pixels to offset grid to the top-left side
-CELL_DIMENSIONS = 30           # Number of pixels for each cell
+CELL_DIMENSIONS = 20           # Number of pixels for each cell
 ACTION_SPACE = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
 
 # Player role variables
