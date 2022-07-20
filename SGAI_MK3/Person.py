@@ -30,14 +30,14 @@ class Person:
         self.isVaccinated = True
         self.turnsVaccinated = 1
     
-    """
-    def distance(self, other_index):
-        first_coord = self.toCoord(self.location)
-        second_coord = self.toCoord(other_index)
+
+    def distance(self, other_index, board):
+        first_coord = board.toCoord(self.location)
+        second_coord = board.toCoord(other_index)
         a = second_coord[0] - first_coord[0]
         b = second_coord[1] - first_coord[1]
-        return math.pow(int(a**2 + b**2), 0.5)
-
+        return int((a**2 + b**2) ** 0.5)
+    """
     def nearest_zombie(self, GameBoard):
         smallest_dist = 100
         for state in GameBoard.state:

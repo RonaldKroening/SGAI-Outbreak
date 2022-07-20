@@ -194,6 +194,7 @@ class Board:
         If no person is selected, then return [False, None]
         If person is already cured, then return [False, None]
         if a person has now been healed, then return [True, index]
+        If there is no bordering healthy person to the target it will return [False, None]
         """
         index = self.toIndex(coords)
         
@@ -204,7 +205,14 @@ class Board:
         # Return False if the person is already cured
         if self.state[index].wasCured:
             return [False, None]
-        
+
+        bordering = False
+        for people in self.people:
+            if people.distance(index, self) == 1 and not people.isInfected:
+                bordering = True
+                break
+        if not bordering:
+            return [False, None]
         # Heal the person
         self.state[index].heal_person()
         return [True, index]

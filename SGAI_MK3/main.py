@@ -81,6 +81,7 @@ while running:
                         playerMoved = True
                     take_action = []
             elif take_action[0] == "heal":
+
                 result = GameBoard.heal(take_action[1])
                 if result[0] != False:
                     playerMoved = True
