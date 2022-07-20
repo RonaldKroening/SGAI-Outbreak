@@ -7,7 +7,7 @@ import random as rd
 SELF_PLAY = False
 ROWS = 20
 COLUMNS = 20
-OFFSET = 100                    # Number of pixels to offset grid to the top-left side
+OFFSET = 50                    # Number of pixels to offset grid to the top-left side
 CELL_DIMENSIONS = 30           # Number of pixels for each cell
 ACTION_SPACE = ["moveUp", "moveDown", "moveLeft", "moveRight", "heal", "bite"]
 

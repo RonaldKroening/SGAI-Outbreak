@@ -13,13 +13,9 @@ IMAGE_ASSETS = [
 
 # Initialize pygame
 pygame.init()
-screen = pygame.display.set_mode((1200, 800))
+screen = pygame.display.set_mode((1200, 700))
 pygame.display.set_caption("Outbreak!")
 pygame.font.init()
-my_font = pygame.font.SysFont("Impact", 30)
-game_window_dimensions = (1400, 800)
-person_dimensions = (20, 60)
-pygame.display.set_caption("Outbreak!")
 screen.fill(BACKGROUND)
 
 def get_action(GameBoard, pixel_x, pixel_y):
