@@ -18,7 +18,7 @@ class Person:
 
     def nearest_zombie(self, GameBoard):
         smallest_dist = 100
-        for state in GameBoard.States:
+        for state in GameBoard.states:
             if state.person != None:
                 if state.person.isZombie:
                     d = self.distance(state.id)

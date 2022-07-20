@@ -5,22 +5,22 @@ from Person import Person
 from typing import Tuple
 
 class Board:
-    def __init__(self, dimensions, offset, cellsize, role):
+    def __init__(self, dimensions, offset, cell_size, role):
         self.rows = dimensions[0]
         self.columns = dimensions[1]
         self.offset = offset
-        self.cellsize = cellsize
-        self.Player_Role = role
+        self.cell_size = cell_size
+        self.player_role = role
         self.population = 0
-        self.States = []
+        self.states = []
         self.QTable = []
-        self.People = []
+        self.people = []
         for s in range(dimensions[0] * dimensions[1]):
             self.QTable.append([0] * 6)
 
     def num_zombies(self):
         r = 0
-        for state in self.States:
+        for state in self.states:
             if state.person != None:
                 if state.person.isZombie:
                     r += 1
@@ -41,7 +41,7 @@ class Board:
             f = self.heal(cell)
         elif givenAction == "bite":
             f = self.bite(cell)
-        reward = self.States[oldstate].evaluate(givenAction, self)
+        reward = self.states[oldstate].evaluate(givenAction, self)
         if f[0] == False:
             reward = 0
         return [reward, f[1]]
@@ -59,9 +59,9 @@ class Board:
 
 
         if role == "Zombie":
-            for idx in range(len(self.States)):
-                B.States = [self.States[i].clone() for i in range(len(self.States))]
-                state = self.States[idx]
+            for idx in range(len(self.states)):
+                B.states = [self.states[i].clone() for i in range(len(self.states))]
+                state = self.states[idx]
                 if state.person is not None:
                     if action == "bite":
                         # if the current space isn't a zombie and it is adjacent
@@ -84,7 +84,7 @@ class Board:
                                     poss.append(B.toCoord(state.location))
 
         elif role == "Government":
-            for state in self.States:
+            for state in self.states:
                 if state.person != None:
                     if action == "heal":
                         if state.person.isZombie or state.person.isVaccinated == False:
@@ -120,9 +120,9 @@ class Board:
             and coordinates[0] >= 0)
 
     def clone(self):
-        NB = Board((self.rows, self.columns), self.offset, self.cellsize, self.Player_Role)
-        NB.States = self.People.copy()
-        NB.Player_Role = self.Player_Role
+        NB = Board((self.rows, self.columns), self.offset, self.cell_size, self.player_role)
+        NB.states = self.people.copy()
+        NB.player_role = self.player_role
         return NB
 
     def isAdjacentTo(self, coord, is_zombie: bool) -> bool:
@@ -136,8 +136,8 @@ class Board:
         for coord in vals:
             if (
                 self.isValidCoordinate(coord)
-                and self.States[self.toIndex(coord)].person is not None
-                and self.States[self.toIndex(coord)].person.isZombie == is_zombie
+                and self.states[self.toIndex(coord)].person is not None
+                and self.states[self.toIndex(coord)].person.isZombie == is_zombie
             ):
                 ret = True
                 break
@@ -160,9 +160,9 @@ class Board:
             return [False, destination_idx]
         
         # Check if the destination is currently occupied
-        if self.States[destination_idx].person is None:
-            self.States[destination_idx].person = self.States[start_idx].person
-            self.States[start_idx].person = None
+        if self.states[destination_idx].person is None:
+            self.states[destination_idx].person = self.states[start_idx].person
+            self.states[start_idx].person = None
             return [True, destination_idx]
         return [False, destination_idx]
 
@@ -183,12 +183,12 @@ class Board:
         return self.move(coords, new_coords)
 
     def QGreedyat(self, state_id):
-        biggest = self.QTable[state_id][0] * self.Player_Role
+        biggest = self.QTable[state_id][0] * self.player_role
         ind = 0
         A = self.QTable[state_id]
         i = 0
         for qval in A:
-            if (qval * self.Player_Role) > biggest:
+            if (qval * self.Plplayer_roleayer_Role) > biggest:
                 biggest = qval
                 ind = i
             i += 1
@@ -200,7 +200,7 @@ class Board:
         if r < L:
             return self.QGreedyat(state_id)
         else:
-            if self.Player_Role == 1:  # Player is Govt
+            if self.player_role == 1:  # Player is Govt
                 d = rd.randint(0, 4)
             else:
                 d = rd.randint(0, 5)
@@ -214,8 +214,8 @@ class Board:
         if r < L:
             biggest = None
             sid = None
-            for x in range(len(self.States)):
-                if self.States[x].person != None:
+            for x in range(len(self.states)):
+                if self.states[x].person != None:
                     q = self.QGreedyat(x)
                     if biggest is None:
                         biggest = q[1]
@@ -225,25 +225,25 @@ class Board:
                         sid = x
             return self.QGreedyat(sid)
         else:
-            if self.Player_Role == -1:  # Player is Govt
-                d = rd.randint(0, len(self.States))
-                while self.States[d].person is None or self.States[d].person.isZombie:
-                    d = rd.randint(0, len(self.States))
+            if self.player_role == -1:  # Player is Govt
+                d = rd.randint(0, len(self.states))
+                while self.states[d].person is None or self.states[d].person.isZombie:
+                    d = rd.randint(0, len(self.states))
             else:
-                d = rd.randint(0, len(self.States))
+                d = rd.randint(0, len(self.states))
                 while (
-                    self.States[d].person is None
-                    or self.States[d].person.isZombie == False
+                    self.states[d].person is None
+                    or self.states[d].person.isZombie == False
                 ):
-                    d = rd.randint(0, len(self.States))
+                    d = rd.randint(0, len(self.states))
             return d
 
     def bite(self, coords):
         i = self.toIndex(coords)
-        if self.States[i] is None:
+        if self.states[i] is None:
             return False
         chance = 100
-        p = self.States[i].person
+        p = self.states[i].person
         if p.isVaccinated:
             chance = 0
         elif p.wasVaccinated != p.wasCured:
@@ -253,7 +253,7 @@ class Board:
         r = rd.randint(0, 100)
         if r < chance:
             p.isZombie = True
-            self.States[i].person = p
+            self.states[i].person = p
         return [True, i]
 
     def heal(self, coords):
@@ -263,22 +263,22 @@ class Board:
         if a person is vaccined, then return [True, index]
         """
         i = self.toIndex(coords)
-        if self.States[i].person is None:
+        if self.states[i].person is None:
             return [False, None]
-        p = self.States[i].person
+        p = self.states[i].person
         p.isZombie = False
         if p.wasCured == False:
             p.wasCured = True
         if p.isVaccinated == False:
             p.isVaccinated = True
             p.turnsVaccinated = 1
-        self.States[i].person = p
+        self.states[i].person = p
         return [True, i]
 
     def get_possible_states(self, rn):
         indexes = []
         i = 0
-        for state in self.States:
+        for state in self.states:
             if state.person != None:
                 if rn == 1 and state.person.isZombie == False:
                     indexes.append(i)
@@ -291,19 +291,19 @@ class Board:
         P = self.get_possible_states(role_number)
         r = rd.uniform(0, 1)
         if r < learningRate:
-            rs = rd.randrange(0, len(self.States) - 1)
+            rs = rd.randrange(0, len(self.states) - 1)
             if role_number == 1:
                 while (
-                    self.States[rs].person is not None
-                    and self.States[rs].person.isZombie
+                    self.states[rs].person is not None
+                    and self.states[rs].person.isZombie
                 ):
-                    rs = rd.randrange(0, len(self.States) - 1)
+                    rs = rd.randrange(0, len(self.states) - 1)
             else:
                 while (
-                    self.States[rs].person is not None
-                    and self.States[rs].person.isZombie == False
+                    self.states[rs].person is not None
+                    and self.states[rs].person.isZombie == False
                 ):
-                    rs = rd.randrange(0, len(self.States) - 1)
+                    rs = rd.randrange(0, len(self.states) - 1)
 
             # random state and value
         # old_value = QTable[state][acti]
@@ -318,7 +318,7 @@ class Board:
         while len(poss) < targetpopulation:
             selected = rd.randint(0, int(self.rows * self.columns))
             newperson = Person("Human", selected)
-            self.People.append(newperson)
+            self.people.append(newperson)
             poss.add(selected)
             
         self.population = len(poss)
@@ -328,13 +328,13 @@ class Board:
             s = rd.randint(0, len(poss) - 1)
             used.add(s)
         for i in used:
-            self.People[i].isZombie = True
-            self.People[i].id = "Zombie"
+            self.people[i].isZombie = True
+            self.people[i].id = "Zombie"
 
     def is_person(self, index):
         # This function loops through all the people and sees if any of them are on the square it seems bad.
         # But, it is a improvement over looping across all tiles if you have a quicker way fix this!
-        for people in self.People:
+        for people in self.people:
             if people.location == index:
                 return people
         return False

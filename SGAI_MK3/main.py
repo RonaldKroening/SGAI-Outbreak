@@ -38,7 +38,7 @@ font = pygame.font.SysFont("Comic Sans", 20)
 
 while running:
     P = PF.run(GameBoard, (ROWS, COLUMNS))
-
+    
     if SELF_PLAY:
         # Event Handling
         for event in pygame.event.get():
@@ -52,7 +52,7 @@ while running:
                     idx = GameBoard.toIndex(action)                         # Get the corresponding 1D index from the 2D grid location that was clicked
                     if "move" not in take_action and take_action == []:     # Check that the click corresponds to an intention to move a player
                         # Make sure that the space is not an empty space or a space of the opposite team
-                        if ( (GameBoard.States[idx].person is not None) and (GameBoard.States[idx].person.isZombie == roleToRoleBoolean[player_role]) ):
+                        if ( (GameBoard.states[idx].person is not None) and (GameBoard.states[idx].person.isZombie == roleToRoleBoolean[player_role]) ):
                             take_action.append("move")
                     if take_action != []:                                   # Only append a coordinate if there is a pending "heal" or "move" intention
                         take_action.append(action)
@@ -134,8 +134,10 @@ while running:
 
         # Update the display
         pygame.display.update()
-
+        
     else:
+        pass
+        """
         if epochs_ran % 100 == 0:
             print("Board Reset!")
             GameBoard = Original_Board  # reset environment
@@ -220,3 +222,4 @@ while running:
                 print("loseCase")
             if event.type == pygame.QUIT:
                 running = False
+        """
