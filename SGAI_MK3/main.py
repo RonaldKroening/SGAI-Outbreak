@@ -17,7 +17,7 @@ roleToRoleNum = {"Government": 1, "Zombie": -1}
 roleToRoleBoolean = {"Government": False, "Zombie": True}
 
 # Create the game board
-GameBoard = Board((ROWS,COLUMNS), OFFSET, CELL_DIMENSIONS, roleToRoleNum[player_role])
+GameBoard = Board((ROWS, COLUMNS), OFFSET, CELL_DIMENSIONS, roleToRoleNum[player_role])
 GameBoard.populate()
 
 # Self play variables
