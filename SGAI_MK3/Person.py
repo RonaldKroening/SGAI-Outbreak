@@ -7,6 +7,7 @@ class Person:
         self.index = this_index
         self.condition = this_condition     # ["Healthy", "Vaccinated", "Cured", "Infected"]
         self.location = location            # in 1D index
+        self.isGovt = False
         self.wasVaccinated = False
         self.turnsVaccinated = 0
         self.isVaccinated = False

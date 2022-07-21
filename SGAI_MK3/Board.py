@@ -11,6 +11,7 @@ class Board:
         self.columns = dimensions[1]
         self.offset = offset
         self.cell_size = cell_size
+        self.govt_index = None
         self.player_role = role
         self.population = 0
         self.people = []    # stores a list of all people (healthy and infected)
@@ -256,6 +257,18 @@ class Board:
         # Change the person to infected
         for index in location_infected_set:
             self.state[index].infect_person()
+        
+        # Make a list of one of the created healthy people to change them to "Govt" at random
+        govt_index_found = False
+        while not govt_index_found: 
+            selected_index = rd.choice(list(location_healthy_set))  # Have to convert the set to a list in order to select with rd.choice
+            if selected_index not in location_infected_set:
+                govt_index_found = True
+        print(selected_index)
+        
+        # Change the person to government
+        self.govt_index = selected_index
+        self.state[selected_index].isGovt = True
         
     """
     def act(self, oldstate, givenAction):

@@ -19,6 +19,7 @@ pygame.font.init()
 screen.fill(BACKGROUND)
 
 # Load images
+img_player_govt = None
 img_player_healthy = None
 img_player_vaccinated = None
 img_player_infected = None
@@ -30,11 +31,14 @@ def load_images(GameBoard):
     Only blit these on refresh, instead of loading them each time
     TODO: find a way to implement this without using the global method here...
     """
+    global img_player_govt
     global img_player_healthy
     global img_player_vaccinated
     global img_player_infected
     global img_vaccinate_icon
     img_player_size = (0.8 * GameBoard.cell_size / 2, 0.8 * GameBoard.cell_size)
+    img_player_govt = pygame.image.load("Assets/person_govt.png").convert_alpha()
+    img_player_govt = pygame.transform.scale(img_player_govt, img_player_size)
     img_player_healthy = pygame.image.load("Assets/person_normal.png").convert_alpha()
     img_player_healthy = pygame.transform.scale(img_player_healthy, img_player_size)
     img_player_vaccinated = pygame.image.load("Assets/person_vax.png").convert_alpha()
@@ -105,7 +109,9 @@ def display_people(GameBoard):
             int(person.location % GameBoard.rows) * GameBoard.cell_size + GameBoard.offset + 0.3 * GameBoard.cell_size,
             int(person.location / GameBoard.columns) * GameBoard.cell_size + GameBoard.offset + 0.1 * GameBoard.cell_size,
         )
-        if person.condition == "Healthy":
+        if person.isGovt:
+            screen.blit(img_player_govt, coords)
+        elif person.condition == "Healthy":
             screen.blit(img_player_healthy, coords)
         elif person.condition == "Cured":
             screen.blit(img_player_vaccinated, coords)
