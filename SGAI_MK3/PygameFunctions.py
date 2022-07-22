@@ -1,3 +1,5 @@
+import random
+
 import pygame
 import random as rd
 
@@ -21,6 +23,7 @@ img_player_healthy = None
 img_player_vaccinated = None
 img_player_infected = None
 
+
 def load_images(GameBoard):
     """
     Load all of the game image assets once
@@ -41,6 +44,7 @@ def load_images(GameBoard):
     img_player_infected = pygame.image.load("Assets/person_infect.png").convert_alpha()
     img_player_infected = pygame.transform.scale(img_player_infected, img_player_size)
 
+
 def get_grid_clicked(GameBoard, pixel_x, pixel_y):
     """
     Get the action that the click represents.
@@ -57,6 +61,7 @@ def get_grid_clicked(GameBoard, pixel_x, pixel_y):
             return (board_x, board_y)
     return False
 
+
 def get_possible_moves(GameBoard, player_coor, include_vaccinate):
     """
     Return a list of all possible moves that the player is allowed to take from the current position.
@@ -68,29 +73,30 @@ def get_possible_moves(GameBoard, player_coor, include_vaccinate):
     possible_moves = []
     if player_coor[0] > 0:
         if GameBoard.state[GameBoard.toIndex([player_coor[0] - 1, player_coor[1]])] == None:
-            possible_moves.append(["move","left"])
+            possible_moves.append(["move", "left"])
         elif include_vaccinate:
             if not GameBoard.state[GameBoard.toIndex([player_coor[0] - 1, player_coor[1]])].isVaccinated:
-                possible_moves.append(["vaccinate","left"])
+                possible_moves.append(["vaccinate", "left"])
     if player_coor[0] < (GameBoard.columns - 1):
         if GameBoard.state[GameBoard.toIndex([player_coor[0] + 1, player_coor[1]])] == None:
-            possible_moves.append(["move","right"])
+            possible_moves.append(["move", "right"])
         elif include_vaccinate:
             if not GameBoard.state[GameBoard.toIndex([player_coor[0] + 1, player_coor[1]])].isVaccinated:
-                possible_moves.append(["vaccinate","right"])
+                possible_moves.append(["vaccinate", "right"])
     if player_coor[1] > 0:
         if GameBoard.state[GameBoard.toIndex([player_coor[0], player_coor[1] - 1])] == None:
-            possible_moves.append(["move","up"])
+            possible_moves.append(["move", "up"])
         elif include_vaccinate:
             if not GameBoard.state[GameBoard.toIndex([player_coor[0], player_coor[1] - 1])].isVaccinated:
-                possible_moves.append(["vaccinate","up"])
+                possible_moves.append(["vaccinate", "up"])
     if player_coor[1] < (GameBoard.rows - 1):
         if GameBoard.state[GameBoard.toIndex([player_coor[0], player_coor[1] + 1])] == None:
-            possible_moves.append(["move","down"])
+            possible_moves.append(["move", "down"])
         elif include_vaccinate:
             if not GameBoard.state[GameBoard.toIndex([player_coor[0], player_coor[1] + 1])].isVaccinated:
-                possible_moves.append(["vaccinate","down"])
+                possible_moves.append(["vaccinate", "down"])
     return possible_moves
+
 
 def run(GameBoard):
     """
@@ -100,7 +106,8 @@ def run(GameBoard):
     build_grid(GameBoard) # Draw the grid
     display_people(GameBoard)
     display_stats(GameBoard)
-    
+
+
 def build_grid(GameBoard):
     """
     Draw the grid on the screen.
@@ -123,6 +130,7 @@ def build_grid(GameBoard):
         pygame.draw.rect(screen, BLACK, [GameBoard.offset, i, grid_width, LINE_WIDTH])
         i += GameBoard.cell_size
 
+
 def display_people(GameBoard):
     """
     Draw the people on the screen.
@@ -141,6 +149,7 @@ def display_people(GameBoard):
                 screen.blit(img_player_vaccinated, coords)
             else: # only infected people right now
                 screen.blit(img_player_infected, coords)
+
 
 def simulate(GameBoard):
     """
@@ -166,6 +175,7 @@ def simulate(GameBoard):
                     if this_move[0] == "move":
                         GameBoard.move(this_move[1], player_loc, False)
 
+
 def progress_infection(GameBoard, days_to_death):
     """
     Progress infection counts on infected people.
@@ -178,7 +188,8 @@ def progress_infection(GameBoard, days_to_death):
                 chance = int( (rd.randint(0,100) * (1 - (person.daysInfected / days_to_death))) )
                 if chance < 1:
                     GameBoard.death(person.location, person.index)
-    
+
+
 def display_stats(GameBoard):
     screen.blit(font.render("Initial population:", True, WHITE), (800, 400))
     screen.blit(font.render(f"{GameBoard.population_initial}", True, WHITE), (1000, 400))
@@ -189,6 +200,47 @@ def display_stats(GameBoard):
     screen.blit(font.render("Total vaccinated:", True, WHITE), (800, 475))
     screen.blit(font.render(f"{GameBoard.num_vaccinated()}", True, WHITE), (1000, 475))
 
+
 def display_finish_screen():
     screen.blit(font.render("SIMULATION OVER.", True, WHITE), (800, 300))
     pygame.display.update()
+
+
+def reward(state, action, ):
+    # This is the all important reward function.
+    r = -1
+    if action[0] == "vaccinate":
+        r = 1
+
+
+    return r
+
+
+def convert_to_action(num):
+    l = []
+    if num < 4:
+        l.append("vaccinate")
+    else:
+        l.append("move")
+    if num == 0 or num == 4:
+        l.append("left")
+    elif num == 1 or num == 5:
+        l.append("right")
+    elif num == 2 or num == 6:
+        l.append("up")
+    else:
+        l.append("down")
+    return l
+
+
+def greedy_epsilon(e, Q):
+    r = random.random()
+    if r > float(e):
+        c = random.choice(Q)
+    else:
+        c = max(Q)
+    return convert_to_action(c), c
+
+
+def update_Q_value(cQ, learn, reward, discount, maxnewQ):
+    return cQ + learn(reward + discount * maxnewQ - cQ)
