@@ -1,3 +1,4 @@
+from typing import Tuple
 from Person import Person
 import math
 
@@ -7,10 +8,10 @@ class State:
         self.person = p
         self.location = i
         pass
-    
-    def distance(self, GameBoard, other_id):
+
+    def distance(self, GameBoard, other_location: int):
         first_coord = GameBoard.toCoord(self.location)
-        second_coord = GameBoard.toCoord(other_id)
+        second_coord = GameBoard.toCoord(other_location)
         a = second_coord[0] - first_coord[0]
         b = second_coord[1] - first_coord[1]
         a = a * a
@@ -27,7 +28,7 @@ class State:
                         smallest_dist = d
         return smallest_dist
 
-    def evaluate(self, action, GameBoard):
+    def evaluate(self, action: str, GameBoard):
         reward = 0
         reward += self.nearest_zombie(GameBoard) - 3
         if action == "heal":
@@ -68,3 +69,19 @@ class State:
         if self.person is None:
             return State(self.person, self.location)
         return State(self.person.clone(), self.location)
+
+    def __eq__(self, __o: object) -> bool:
+        if type(__o) == State:
+            return self.person == __o.person and self.location == __o.location
+        return False
+
+    def __ne__(self, __o: object) -> bool:
+        return not self == __o
+
+    def update(self):
+        """
+        If this has a person, update the person within.
+        """
+        if self.person is None:
+            return
+        self.person.update()
