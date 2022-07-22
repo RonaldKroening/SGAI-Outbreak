@@ -34,7 +34,11 @@ def load_images(GameBoard):
     global img_player_healthy
     global img_player_vaccinated
     global img_player_infected
+
     img_player_size = (0.8 * GameBoard.cell_size / 2, 0.8 * GameBoard.cell_size)
+    global img_vaccinate_icon
+    img_player_size = (int(0.8 * GameBoard.cell_size / 2), int(0.8 * GameBoard.cell_size))
+
     img_player_govt = pygame.image.load("Assets/person_govt.png").convert_alpha()
     img_player_govt = pygame.transform.scale(img_player_govt, img_player_size)
     img_player_healthy = pygame.image.load("Assets/person_normal.png").convert_alpha()
