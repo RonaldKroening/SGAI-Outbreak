@@ -2,6 +2,7 @@ import pygame
 from Board import Board
 import PygameFunctions as PF
 import random as rd
+<<<<<<< Updated upstream
 
 # Constants
 ROWS = 6
@@ -18,6 +19,14 @@ roleToRoleBoolean = {"Government": False, "Zombie": True}
 
 #Create the game board
 GameBoard = Board((ROWS,COLUMNS), BORDER, CELL_DIMENSIONS, roleToRoleNum[player_role])
+=======
+from constants import *
+from Engine import Engine
+SELF_PLAY = True  # whether or not a human will be playing
+player_role = "Zombie"  # Valid options are "Government" and "Zombie"
+# Create the game board
+GameBoard = Board((ROWS, COLUMNS), player_role)
+>>>>>>> Stashed changes
 GameBoard.populate()
 
 # Self play variables
@@ -26,7 +35,12 @@ gamma = 0.6
 epsilon = 0.1
 epochs = 1000
 epochs_ran = 0
+<<<<<<< Updated upstream
 Original_Board = GameBoard.clone(GameBoard.States)
+=======
+average_reward = 0
+Original_Board = GameBoard.clone(GameBoard.States, GameBoard.player_role)
+>>>>>>> Stashed changes
 
 
 # Initialize variables
@@ -139,6 +153,7 @@ while running:
         pygame.display.update()
 
     else:
+<<<<<<< Updated upstream
         if epochs_ran % 100 == 0:
             print("Board Reset!")
             GameBoard = Original_Board  # reset environment
@@ -223,3 +238,72 @@ while running:
                 print("loseCase")
             if event.type == pygame.QUIT:
                 running = False
+=======
+        E = Engine(player_role, 0, [alpha,gamma, epsilon],False)
+        Opponent = None
+        
+        '''
+        Last value in engine is called rand. If you want your opponent function to act randomly, set it to true.
+        '''
+        if(player_role == "Government"):
+            Opponent = Engine("Zombie", 0, [alpha,gamma, epsilon],True)
+        else:
+            Opponent = Engine("Government", 0, [alpha,gamma, epsilon],True)
+        while(epochs_ran < epochs):
+            if epochs_ran % 100 == 0:
+                print("Board Reset!")
+                print("Average Reward: ", average_reward)
+                GameBoard = Original_Board  # reset environment
+            for event in P:
+                action_to_take = E.think(GameBoard)
+                # Update
+                # ACT FUNCTION IN GAMEBOARD SHOULD ALWAYS, REGARDLESS OF ML MODEL, TAKE TWO VALUES: THE ACTION AND THE COORDINATE AFFECTED.
+                reward = GameBoard.act(action_to_take[0], action_to_take[1])
+                if(epochs_ran > 0):
+                    average_reward = average_reward * epochs_ran
+                    average_reward = average_reward + reward[0]
+                    average_reward = average_reward / epochs_ran
+                else:
+                    average_reward = average_reward + reward[0]
+                ns = reward[1]
+                NewStateAct = GameBoard.QGreedyat(ns)
+                
+                NS = GameBoard.QTable[ns][NewStateAct[0]]
+                action_to_take.append(reward[0])
+                action_to_take.append(ns)
+                E.update_q_table(GameBoard, action_to_take) #remove if not qtable
+
+                if GameBoard.num_zombies() == 0: #change to reflect wincase for role given
+                    print("winCase")
+                    epochs_ran+=1
+
+                take_action = []
+                print("Enemy turn")
+                action_to_take = Opponent.think(GameBoard)
+                # Update
+                # ACT FUNCTION IN GAMEBOARD SHOULD ALWAYS, REGARDLESS OF ML MODEL, TAKE TWO VALUES: THE ACTION AND THE COORDINATE AFFECTED.
+                reward = GameBoard.act(action_to_take[0], action_to_take[1])
+                if(epochs_ran > 0):
+                    average_reward = average_reward * epochs_ran
+                    average_reward = average_reward + reward[0]
+                    average_reward = average_reward / epochs_ran
+                else:
+                    average_reward = average_reward + reward[0]
+                ns = reward[1]
+                NewStateAct = GameBoard.QGreedyat(ns)
+                
+                NS = GameBoard.QTable[ns][NewStateAct[0]]
+                action_to_take.append(reward[0])
+                action_to_take.append(ns)
+                E.update_q_table(GameBoard, action_to_take) #remove if not qtable
+
+                if GameBoard.num_zombies() == 0: #change to reflect wincase for role given
+                    print("winCase")
+                    epochs_ran+=1
+
+                elif GameBoard.num_zombies() == GameBoard.population:#change to reflect wincase for role given
+                    epochs_ran +=1
+                    print("loseCase")
+                if event.type == pygame.QUIT:
+                    running = False
+>>>>>>> Stashed changes
