@@ -2,7 +2,7 @@ import pygame
 from Board import Board
 import PygameFunctions as PF
 import random as rd
-
+from Engine import Engine
 # Constants
 ROWS = 6
 COLUMNS = 6
@@ -34,7 +34,7 @@ running = True
 take_action = []
 playerMoved = False
 font = pygame.font.SysFont("Comic Sans", 20)
-
+maxmoves = 60
 
 
 while running:
@@ -42,7 +42,7 @@ while running:
 
     if SELF_PLAY:
         
-        # Event Handling
+        # Event Handling 
         for event in P:
             if event.type == pygame.MOUSEBUTTONUP:
                 x, y = pygame.mouse.get_pos()
@@ -139,87 +139,72 @@ while running:
         pygame.display.update()
 
     else:
-        if epochs_ran % 100 == 0:
-            print("Board Reset!")
-            GameBoard = Original_Board  # reset environment
-        for event in P:
-            i = 0
-            r = rd.uniform(0.0, 1.0)
-            st = rd.randint(0, len(GameBoard.States) - 1)
-            state = GameBoard.QTable[st]
+        E = Engine(player_role, 0, [alpha,gamma, epsilon],False)
+        Opponent = None
+        
+        '''
+        Last value in engine is called rand. If you want your opponent function to act randomly, set it to true.
+        '''
+        if(player_role == "Government"):
+            Opponent = Engine("Zombie", 0, [alpha,gamma, epsilon],True)
+        else:
+            Opponent = Engine("Government", 0, [alpha,gamma, epsilon],True)
+        while(epochs_ran < epochs):
+            if epochs_ran % 100 == 0:
+                print("Board Reset!")
+                print("Average Reward: ", average_reward)
+                GameBoard = Original_Board  # reset environment
+            moves = 0
+            for event in P:
+                
+                action_to_take = E.think(GameBoard)
+                # Update
+                # ACT FUNCTION IN GAMEBOARD SHOULD ALWAYS, REGARDLESS OF ML MODEL, TAKE TWO VALUES: THE ACTION AND THE COORDINATE AFFECTED.
+                reward = GameBoard.act(action_to_take[0], action_to_take[1])
+                if(epochs_ran > 0):
+                    average_reward = average_reward * epochs_ran
+                    average_reward = average_reward + reward[0]
+                    average_reward = average_reward / epochs_ran
+                else:
+                    average_reward = average_reward + reward[0]
+                ns = reward[1]
+                NewStateAct = GameBoard.QGreedyat(ns)
+                
+                NS = E.QTable[ns][NewStateAct[0]]
+                action_to_take.append(reward[0])
+                action_to_take.append(ns)
+                E.update_q_table(GameBoard, action_to_take) #remove if not qtable
 
-            if r < gamma:
-                while GameBoard.States[st].person is None:
-                    st = rd.randint(0, len(GameBoard.States) - 1)
-            else:
-                biggest = None
-                for x in range(len(GameBoard.States)):
-                    arr = GameBoard.QTable[x]
-                    exp = sum(arr) / len(arr)
-                    if biggest is None:
-                        biggest = exp
-                        i = x
-                    elif biggest < exp and player_role == "Government":
-                        biggest = exp
-                        i = x
-                    elif biggest > exp and player_role != "Government":
-                        biggest = exp
-                        i = x
-                state = GameBoard.QTable[i]
-            b = 0
-            j = 0
-            ind = 0
-            for v in state:
-                if v > b and player_role == "Government":
-                    b = v
-                    ind = j
-                elif v < b and player_role != "Government":
-                    b = v
-                    ind = j
-                j += 1
-            action_to_take = ACTION_SPACE[ind]
-            old_qval = b
-            old_state = i
-            
-            # Update
-            # Q(S, A) = Q(S, A) + alpha[R + gamma * max_a Q(S', A) - Q(S, A)]
-            reward = GameBoard.act(old_state, action_to_take)
-            ns = reward[1]
-            NewStateAct = GameBoard.QGreedyat(ns)
-            NS = GameBoard.QTable[ns][NewStateAct[0]]
-            #GameBoard.QTable[i] = GameBoard.QTable[i] + alpha * (reward[0] + gamma * NS) - GameBoard.QTable[i]
-            if GameBoard.num_zombies() == 0:
-                print("winCase")
+                if GameBoard.num_zombies() == 0: #change to reflect wincase for role given
+                    print("winCase")
+                    epochs_ran+=1
 
-            take_action = []
-            print("Enemy turn")
-            ta = ""
-            if player_role == "Government":
-                r = rd.randint(0, 5)
-                while r == 4:
-                    r = rd.randint(0, 5)
-                ta = ACTION_SPACE[r]
-            else:
-                r = rd.randint(0, 4)
-                ta = ACTION_SPACE[r]
-            poss = GameBoard.get_possible_moves(ta, "Zombie")
-            
-            if len(poss) > 0:
-                r = rd.randint(0, len(poss) - 1)
-                a = poss[r]
-                if ta == "moveUp":
-                    GameBoard.moveUp(a)
-                elif ta == "moveDown":
-                    GameBoard.moveDown(a)
-                elif ta == "moveLeft":
-                    GameBoard.moveLeft(a)
-                elif ta == "moveRight":
-                    GameBoard.moveRight(a)
-                elif ta == "bite":
-                    GameBoard.bite(a)
-                elif ta == "heal":
-                    GameBoard.heal(a)
-            if GameBoard.num_zombies() == GameBoard.population:
-                print("loseCase")
-            if event.type == pygame.QUIT:
-                running = False
+                take_action = []
+                print("Enemy turn")
+                action_to_take = Opponent.think(GameBoard)
+                # Update
+                # ACT FUNCTION IN GAMEBOARD SHOULD ALWAYS, REGARDLESS OF ML MODEL, TAKE TWO VALUES: THE ACTION AND THE COORDINATE AFFECTED.
+                reward = GameBoard.act(action_to_take[0], action_to_take[1])
+                if(epochs_ran > 0):
+                    average_reward = average_reward * epochs_ran
+                    average_reward = average_reward + reward[0]
+                    average_reward = average_reward / epochs_ran
+                else:
+                    average_reward = average_reward + reward[0]
+                ns = reward[1]
+                NewStateAct = GameBoard.QGreedyat(ns)
+                
+                NS = GameBoard.QTable[ns][NewStateAct[0]]
+                action_to_take.append(reward[0])
+                action_to_take.append(ns)
+                E.update_q_table(GameBoard, action_to_take) #remove if not qtable
+                moves +=1
+                if GameBoard.num_zombies() == 0: #change to reflect wincase for role given
+                    print("winCase")
+                    epochs_ran+=1
+
+                elif GameBoard.num_zombies() == GameBoard.population or moves > maxmoves:#change to reflect wincase for role given
+                    epochs_ran +=1
+                    print("loseCase")
+                if event.type == pygame.QUIT:
+                    running = False

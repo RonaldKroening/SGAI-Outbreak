@@ -1,4 +1,5 @@
 import pygame
+<<<<<<< Updated upstream
 
 BACKGROUND = "#DDC2A1"
 BLACK = (0, 0, 0)
@@ -14,6 +15,11 @@ image_assets = [
     "person_zombie.png",
 ]
 
+=======
+from constants import *
+from Board import Board
+import os
+>>>>>>> Stashed changes
 
 # Initialize pygame
 screen = pygame.display.set_mode((1200, 800))
@@ -52,8 +58,17 @@ def run(GameBoard):
     Draw the screen and return any events.
     """
     screen.fill(BACKGROUND)
+<<<<<<< Updated upstream
     build_grid(GameBoard) # Draw the grid
     display_image(screen, "Assets/cure.jpeg", GameBoard.display_cell_dimensions, (950, 200)) # Draw the heal icon
+=======
+    build_grid(GameBoard)  # Draw the grid
+    # Draw the heal icon
+    if GameBoard.player_role == "Government":
+        display_image(screen, "SGAI_MK3/Assets/cure.jpeg", CURE_BITE_DIMS, CURE_BITE_COORDS)
+    else:
+        display_image(screen, "SGAI_MK3/Assets/bite.png", CURE_BITE_DIMS, CURE_BITE_COORDS)
+>>>>>>> Stashed changes
     display_people(GameBoard)
     return pygame.event.get()
 
@@ -61,6 +76,7 @@ def display_image(screen, itemStr, dimensions, position):
     """
     Draw an image on the screen of size dimensions at the indicated position.
     """
+
     v = pygame.image.load(itemStr).convert_alpha()
     v = pygame.transform.scale(v, dimensions)
     screen.blit(v, position)
@@ -94,11 +110,19 @@ def display_people(GameBoard):
     for x in range(len(GameBoard.States)):
         if GameBoard.States[x].person != None:
             p = GameBoard.States[x].person
+<<<<<<< Updated upstream
             char = "Assets/" + image_assets[0]
             if p.isVaccinated:
                 char = "Assets/" + image_assets[1]
             elif p.isZombie:
                 char = "Assets/" + image_assets[2]
+=======
+            char = "SGAI_MK3/Assets/" + IMAGE_ASSETS[0]
+            if p.isVaccinated:
+                char = "SGAI_MK3/Assets/" + IMAGE_ASSETS[1]
+            elif p.isZombie:
+                char = "SGAI_MK3/Assets/" + IMAGE_ASSETS[2]
+>>>>>>> Stashed changes
             coords = (
                 int(x % GameBoard.rows) * GameBoard.display_cell_dimensions[0] + GameBoard.display_border + 35,
                 int(x / GameBoard.columns) * GameBoard.display_cell_dimensions[1] + GameBoard.display_border + 20,
